@@ -24,6 +24,9 @@
   "esmodules": [
     "setup.js"
   ],
+  "templates": [
+    "templates/turn-timer.hbs"
+  ],
   "styles": [
     "styles/module.css",
     "styles/module.css.map"

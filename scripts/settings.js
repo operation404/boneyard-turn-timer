@@ -1,7 +1,8 @@
-import { MODULE, SETTING_DEFAULT_TURN_DURATION, SETTING_CUSTOM_TURN_DURATIONS } from './constants.js';
+import { MODULE, SETTING_DEFAULT_TURN_DURATION, SETTING_FORCE_TURN_CHANGE, SETTING_CUSTOM_TURN_DURATIONS } from './constants.js';
 import { Turn_Timer } from './turn_timer.js';
 
 export function prepare_settings() {
+	
 	game.settings.register(MODULE, SETTING_DEFAULT_TURN_DURATION, {
 		name: 'SETTINGS.NAME.default_turn_duration',
 		hint: 'SETTINGS.HINT.default_turn_duration',
@@ -9,6 +10,17 @@ export function prepare_settings() {
 		config: true,
 		type: Number,
 		default: 60,
+		requiresReload: false,
+		onChange: (value) => {},
+	});
+
+	game.settings.register(MODULE, SETTING_FORCE_TURN_CHANGE, {
+		name: 'SETTINGS.NAME.force_turn_change',
+		hint: 'SETTINGS.HINT.force_turn_change',
+		scope: 'world',
+		config: true,
+		type: Boolean,
+		default: true,
 		requiresReload: false,
 		onChange: (value) => {},
 	});
