@@ -1,22 +1,11 @@
 /* Using a # allows styling to be applied by id rather than class */
 
-@keyframes by-bar-fill-horizontal {
-	from {
-		width: 0%;
-	}
-	to {
-		width: 100%;
-	}
-}
-
 div.by-timer-bar {
 	flex: none;
 	height: 6px;
 	width: 0%;
 	background-color: yellow;
 	border: #2e353b;
-	animation-name: by-bar-fill-horizontal;
-	animation-timing-function: linear;
 }
 
 div.by-row-container {
