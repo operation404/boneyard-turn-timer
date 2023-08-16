@@ -70,6 +70,7 @@ export class Turn_Timer {
 	static prepare_hooks() {
 		Hooks.on('combatStart', Turn_Timer.attach_timer);
 		Hooks.on('combatTurn', Turn_Timer.attach_timer);
+		Hooks.on('combatRound', Turn_Timer.attach_timer);
 	}
 
 	static attach_timer(combat, updateData, updateOptions) {
@@ -77,24 +78,34 @@ export class Turn_Timer {
 		Turn_Timer.timers.forEach((timer) => timer.remove());
 		console.log(combat, updateData, updateOptions);
 
-		if (combat.started && combat.isActive) {
-			const temp = combat.combatant;
-			const actorID = combat.combatant?.actorId;
-			const actor = actorID ? game.actors.get(actorID) : undefined;
-			const owners = [];
-			for (let userID in actor?.ownership ?? {}) {
-				if (actor.ownership[userID] === 3) owners.push(userID);
-			}
-			console.log(owners, actor);
 
-			// if owners.length === 0, GM owns token, don't make a turn timer
-			if (owners.length > 0) {
-				Hooks.once('renderCombatTracker', (combatTracker, html, data) => {
-					// TODO check to make sure viewed combat is the same as the one triggering this
-					// it always should be, but better safe than sorry
-					Turn_Timer.timers.push(new Turn_Timer(html[0].querySelector(`nav#combat-controls`), owners));
-				});
-			}
+		// TODO
+		// this works, but it only puts one timer bar on...
+		// I need to do this either 1 OR 2 times, but I don't have a good way of
+		// figuring out how many times to do it
+		// need a way to check if there are two combat trackers active or not
+
+		if (combat.isActive) {
+			Hooks.once('updateCombat', (combat, change, options, userID) => {
+				const actorID = combat.combatant?.actorId;
+				const actor = actorID ? game.actors.get(actorID) : undefined;
+				const owners = [];
+				for (let userID in actor?.ownership ?? {}) {
+					if (actor.ownership[userID] === 3 && !game.users.get(userID).isGM) owners.push(userID);
+				}
+				console.log(owners, actor, combat.combatants.get(combat.current.combatantId));
+
+				// if owners.length === 0, GM owns token, don't make a turn timer
+				if (owners.length > 0) {
+					Hooks.once('renderCombatTracker', (combatTracker, html, data) => {
+						if (combat.id === combatTracker.viewed?.id) {
+							Turn_Timer.timers.push(
+								new Turn_Timer(html[0].querySelector(`nav#combat-controls`), owners)
+							);
+						}
+					});
+				}
+			});
 		}
 	}
 
@@ -137,6 +148,6 @@ export class Turn_Timer {
 	remove() {
 		clearInterval(this.intervalID);
 		this.element.remove();
-		Turn_Timer.timers.splice(Turn_Timer.timers.indexOf(this), 1);	
+		Turn_Timer.timers.splice(Turn_Timer.timers.indexOf(this), 1);
 	}
 }
