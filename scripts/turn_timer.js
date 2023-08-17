@@ -25,12 +25,11 @@ export class Turn_Timer {
 		const element_template = document.createElement('template');
 		element_template.innerHTML = await renderTemplate(TEMPLATE_PATH, {});
 		Turn_Timer.element = element_template.content.firstChild;
-
 		Turn_Timer.default_duration = game.settings.get(MODULE, SETTING_DEFAULT_TURN_DURATION);
 		Turn_Timer.force_end_turn = game.settings.get(MODULE, SETTING_FORCE_TURN_CHANGE);
-		Turn_Timer.parse_custom_durations(game.settings.get(MODULE, SETTING_CUSTOM_TURN_DURATIONS));
 	}
 
+	// requires accessing users, so game must be ready before running
 	// format: "Tony solo" 8, "the jimster" 12
 	static parse_custom_durations(str) {
 		const custom_durations = {};
@@ -47,9 +46,12 @@ export class Turn_Timer {
 	}
 
 	static prepare_hooks() {
-		Hooks.on('combatStart', Turn_Timer.attach_timer);
-		Hooks.on('combatTurn', Turn_Timer.attach_timer);
-		Hooks.on('combatRound', Turn_Timer.attach_timer);
+		Hooks.once('ready', () => {
+			Turn_Timer.parse_custom_durations(game.settings.get(MODULE, SETTING_CUSTOM_TURN_DURATIONS));
+			Hooks.on('combatStart', Turn_Timer.attach_timer);
+			Hooks.on('combatTurn', Turn_Timer.attach_timer);
+			Hooks.on('combatRound', Turn_Timer.attach_timer);
+		});
 	}
 
 	static attach_timer(combat, updateData, updateOptions) {
@@ -79,11 +81,10 @@ export class Turn_Timer {
 		this.bars = [];
 
 		this.hookID = Hooks.on('renderCombatTracker', (combatTracker, html, data) => {
-			console.log(combatTracker);
 			if (this.combat.id === combatTracker.viewed?.id) {
 				const new_node = Turn_Timer.element.cloneNode(true);
 				html[0].querySelector(`nav#combat-controls`).insertAdjacentElement('beforebegin', new_node);
-				new_node.querySelector("span.by-timer-text").textContent = `${Math.floor(this.lifespan / 1000)}s`
+				new_node.querySelector('span.by-timer-text').textContent = `${Math.floor(this.lifespan / 1000)}s`;
 				this.timers.push(new_node);
 			}
 		});
@@ -103,7 +104,11 @@ export class Turn_Timer {
 			let time = 0;
 			owners.forEach((userID) => {
 				let t = Turn_Timer.custom_durations[userID];
-				if (t && t > time) time = t;
+				if (t) {
+					if (t > time) time = t;
+				} else {
+					if (Turn_Timer.default_duration > time) time = Turn_Timer.default_duration;
+				}
 			});
 			if (time === 0) time = Turn_Timer.default_duration;
 			this.lifespan = time * 1000;
@@ -119,14 +124,19 @@ export class Turn_Timer {
 		for (let i = 0; i < this.timers.length; i++) {
 			if (document.body.contains(this.timers[i])) {
 				this.timers[i].querySelector('div.by-timer-bar').style['width'] = new_width;
-				this.timers[i].querySelector('span.by-timer-text').textContent = `${Math.floor((this.lifespan - this.progress) / 1000)}s`;
+				this.timers[i].querySelector('span.by-timer-text').textContent = `${Math.floor(
+					(this.lifespan - this.progress) / 1000
+				)}s`;
 			} else {
 				this.timers[i] = null;
 			}
 		}
 		this.timers = this.timers.filter((t) => t !== null);
 
-		if (this.progress >= this.lifespan) this.remove();
+		if (this.progress >= this.lifespan) {
+			this.remove();
+			if (Turn_Timer.force_end_turn) this.combat.nextTurn();
+		}
 	}
 
 	remove() {
