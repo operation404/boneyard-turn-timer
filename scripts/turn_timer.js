@@ -3,7 +3,9 @@ import * as CONST from './constants.js';
 export class Turn_Timer {
 	static interval = 25; // milliseconds
 	static min_turn_duration = 1; // seconds TODO keep 1? or raise to like, 10?... Needs to be at least 1 though, or weird shit may happen
+	static toggle_buttons = [];
 
+	static active;
 	static default_duration;
 	static force_end_turn;
 	static custom_durations;
@@ -12,6 +14,7 @@ export class Turn_Timer {
 	static bar_color;
 	static warning_threshold;
 	static warning_glow_color;
+	static toggle_button_element;
 
 	static async init() {
 		await Turn_Timer.prepare_data();
@@ -21,17 +24,21 @@ export class Turn_Timer {
 	}
 
 	static async prepare_data() {
+		Turn_Timer.active = game.settings.get(CONST.MODULE, CONST.SETTING_ACTIVE);
 		Turn_Timer.default_duration = game.settings.get(CONST.MODULE, CONST.SETTING_DEFAULT_TURN_DURATION);
 		Turn_Timer.force_end_turn = game.settings.get(CONST.MODULE, CONST.SETTING_FORCE_TURN_CHANGE);
 		Turn_Timer.warning_threshold = game.settings.get(CONST.MODULE, CONST.SETTING_WARNING_THRESHOLD);
 		await Turn_Timer.generate_base_element();
+		const element_template = document.createElement('template');
+		element_template.innerHTML = await renderTemplate(CONST.CONTROL_TEMPLATE_PATH, {});
+		Turn_Timer.toggle_button_element = element_template.content.firstChild;
 	}
 
 	static async generate_base_element() {
 		Turn_Timer.bar_color = game.settings.get(CONST.MODULE, CONST.SETTING_BAR_COLOR);
 		Turn_Timer.warning_glow_color = game.settings.get(CONST.MODULE, CONST.SETTING_WARNING_COLOR);
 		const element_template = document.createElement('template');
-		element_template.innerHTML = await renderTemplate(CONST.TEMPLATE_PATH, {
+		element_template.innerHTML = await renderTemplate(CONST.TIMER_TEMPLATE_PATH, {
 			bar_color: Turn_Timer.bar_color,
 			warning_glow_color: Turn_Timer.warning_glow_color,
 		});
@@ -41,10 +48,21 @@ export class Turn_Timer {
 	static prepare_hooks() {
 		Hooks.once('ready', () => {
 			Turn_Timer.parse_custom_durations(game.settings.get(CONST.MODULE, CONST.SETTING_CUSTOM_TURN_DURATIONS));
+			Hooks.on('renderCombatTracker', Turn_Timer.attach_toggle_button);
+			if (Turn_Timer.active) Turn_Timer.toggle_timer_hooks();
+		});
+	}
+
+	static toggle_timer_hooks() {
+		if (Turn_Timer.active) {
 			Hooks.on('combatStart', Turn_Timer.attach_timer);
 			Hooks.on('combatTurn', Turn_Timer.attach_timer);
 			Hooks.on('combatRound', Turn_Timer.attach_timer);
-		});
+		} else {
+			Hooks.off('combatStart', Turn_Timer.attach_timer);
+			Hooks.off('combatTurn', Turn_Timer.attach_timer);
+			Hooks.off('combatRound', Turn_Timer.attach_timer);
+		}
 	}
 
 	// requires accessing users, so game must be ready before running
@@ -85,7 +103,40 @@ export class Turn_Timer {
 		}
 	}
 
-	constructor(owners, combat, options = {}) {
+	static attach_toggle_button(combatTracker, html, data) {
+		const new_node = Turn_Timer.toggle_button_element.cloneNode(true);
+		html[0].querySelector(`a[data-control="rollNPC"]`).insertAdjacentElement('afterend', new_node);
+		html[0].querySelector(`h3.encounter-title`).style['margin-left'] = 0;
+		new_node.addEventListener('click', Turn_Timer.toggle_button_handler);
+		if (Turn_Timer.active) {
+			new_node.style['text-shadow'] = '0 0 8px blue';
+		}
+		Turn_Timer.toggle_buttons.push(new_node);
+	}
+
+	static toggle_button_handler(e) {
+		Turn_Timer.active = !Turn_Timer.active;
+		Turn_Timer.toggle_timer_hooks();
+		Turn_Timer.timer?.remove();
+
+		// update toggle buttons still in DOM, remove rest
+		for (let i = 0; i < Turn_Timer.toggle_buttons.length; i++) {
+			if (document.body.contains(Turn_Timer.toggle_buttons[i])) {
+				if (Turn_Timer.active) {
+					Turn_Timer.toggle_buttons[i].style['text-shadow'] = '0 0 8px blue';
+				} else {
+					Turn_Timer.toggle_buttons[i].style['text-shadow'] = null;
+				}
+			} else {
+				Turn_Timer.toggle_buttons[i] = null;
+			}
+		}
+		Turn_Timer.toggle_buttons = Turn_Timer.toggle_buttons.filter((t) => t !== null);
+
+		game.settings.set(CONST.MODULE, CONST.SETTING_ACTIVE, Turn_Timer.active);
+	}
+
+	constructor(owners, combat) {
 		this.combat = combat;
 		this.calculate_lifespan(owners);
 		this.warning_not_triggered = true;
@@ -147,11 +198,11 @@ export class Turn_Timer {
 		) {
 			this.warning_not_triggered = false;
 			// TODO play warning sound
+
+			//new Sound(src).play()
 		}
 
-		// Update timer bars still in DOM, remove ones that aren't
-		const new_width = `${Math.min(this.progress / this.lifespan, 1) * 100}%`;
-		const new_time = `${Math.floor((this.lifespan - this.progress) / 1000)}s`;
+		// Update timer bars still in DOM, remove rest
 		for (let i = 0; i < this.timers.length; i++) {
 			if (document.body.contains(this.timers[i])) {
 				this.set_element_style(this.timers[i]);

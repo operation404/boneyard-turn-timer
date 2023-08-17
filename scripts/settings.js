@@ -4,6 +4,14 @@ import { Turn_Timer } from './turn_timer.js';
 const hex_test = /^#[0-9A-F]{6}$/i;
 
 export function prepare_settings() {
+	game.settings.register(CONST.MODULE, CONST.SETTING_ACTIVE, {
+		scope: 'world',
+		config: false,
+		type: Boolean,
+		default: true,
+		requiresReload: false,
+	});
+
 	game.settings.register(CONST.MODULE, CONST.SETTING_DEFAULT_TURN_DURATION, {
 		name: `SETTINGS.NAME.${CONST.SETTING_DEFAULT_TURN_DURATION}`,
 		hint: `SETTINGS.HINT.${CONST.SETTING_DEFAULT_TURN_DURATION}`,

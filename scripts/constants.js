@@ -1,5 +1,9 @@
 export const MODULE = "boneyard-turn-timer";
-export const TEMPLATE_PATH = 'modules/boneyard-turn-timer/templates/timer-bar.hbs';
+
+export const TIMER_TEMPLATE_PATH = 'modules/boneyard-turn-timer/templates/timer-bar.hbs';
+export const CONTROL_TEMPLATE_PATH = 'modules/boneyard-turn-timer/templates/toggle-control.hbs';
+
+export const SETTING_ACTIVE = "active";
 export const SETTING_FORCE_TURN_CHANGE = "force_turn_change";
 export const SETTING_DEFAULT_TURN_DURATION = "default_turn_duration";
 export const SETTING_CUSTOM_TURN_DURATIONS = "custom_turn_durations";
