@@ -54,7 +54,6 @@ export class Turn_Timer {
 
 	static attach_timer(combat, updateData, updateOptions) {
 		Turn_Timer.timer?.remove();
-		console.log(combat, updateData, updateOptions);
 
 		if (combat.isActive) {
 			Hooks.once('updateCombat', (combat, change, options, userID) => {
@@ -64,7 +63,6 @@ export class Turn_Timer {
 				for (let userID in actor?.ownership ?? {}) {
 					if (actor.ownership[userID] === 3 && !game.users.get(userID).isGM) owners.push(userID);
 				}
-				console.log(owners, actor, combat.combatants.get(combat.current.combatantId));
 
 				// if 0, gm owns token, don't make timer
 				if (owners.length > 0) {
@@ -78,12 +76,15 @@ export class Turn_Timer {
 		this.set_lifespan(owners);
 		this.combat = combat;
 		this.timers = [];
+		this.bars = [];
 
 		this.hookID = Hooks.on('renderCombatTracker', (combatTracker, html, data) => {
+			console.log(combatTracker);
 			if (this.combat.id === combatTracker.viewed?.id) {
-				const new_node = Turn_Timer.element.cloneNode();
+				const new_node = Turn_Timer.element.cloneNode(true);
 				html[0].querySelector(`nav#combat-controls`).insertAdjacentElement('beforebegin', new_node);
 				this.timers.push(new_node);
+				console.log(new_node);
 			}
 		});
 
@@ -117,7 +118,7 @@ export class Turn_Timer {
 
 		for (let i = 0; i < this.timers.length; i++) {
 			if (document.body.contains(this.timers[i])) {
-				this.timers[i].style['width'] = new_width;
+				this.timers[i].querySelector('div.by-timer-bar').style['width'] = new_width;
 			} else {
 				this.timers[i] = null;
 			}
