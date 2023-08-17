@@ -110,6 +110,7 @@ export class Turn_Timer {
 		new_node.addEventListener('click', Turn_Timer.toggle_button_handler);
 		if (Turn_Timer.active) {
 			new_node.style['text-shadow'] = '0 0 8px blue';
+			new_node.dataset.tooltip = 'Toggle turn timers off';
 		}
 		Turn_Timer.toggle_buttons.push(new_node);
 	}
@@ -124,8 +125,10 @@ export class Turn_Timer {
 			if (document.body.contains(Turn_Timer.toggle_buttons[i])) {
 				if (Turn_Timer.active) {
 					Turn_Timer.toggle_buttons[i].style['text-shadow'] = '0 0 8px blue';
+					Turn_Timer.toggle_buttons[i].dataset.tooltip = 'Toggle turn timers off';
 				} else {
 					Turn_Timer.toggle_buttons[i].style['text-shadow'] = null;
+					Turn_Timer.toggle_buttons[i].dataset.tooltip = 'Toggle turn timers on';
 				}
 			} else {
 				Turn_Timer.toggle_buttons[i] = null;
