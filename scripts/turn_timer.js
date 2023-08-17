@@ -1,10 +1,4 @@
-import {
-	MODULE,
-	TEMPLATE_PATH,
-	SETTING_DEFAULT_TURN_DURATION,
-	SETTING_FORCE_TURN_CHANGE,
-	SETTING_CUSTOM_TURN_DURATIONS,
-} from './constants.js';
+import * as CONST from './constants.js';
 
 export class Turn_Timer {
 	static default_duration;
@@ -13,6 +7,9 @@ export class Turn_Timer {
 	static element;
 	static timer;
 	static interval = 25; // ms
+	static bar_color;
+	static warning_threshold;
+	static warning_glow_color;
 
 	static async init() {
 		await Turn_Timer.prepare_data();
@@ -22,11 +19,17 @@ export class Turn_Timer {
 	}
 
 	static async prepare_data() {
+		Turn_Timer.default_duration = game.settings.get(CONST.MODULE, CONST.SETTING_DEFAULT_TURN_DURATION);
+		Turn_Timer.force_end_turn = game.settings.get(CONST.MODULE, CONST.SETTING_FORCE_TURN_CHANGE);
+		Turn_Timer.bar_color = game.settings.get(CONST.MODULE, CONST.SETTING_BAR_COLOR);
+		Turn_Timer.warning_threshold = game.settings.get(CONST.MODULE, CONST.SETTING_WARNING_THRESHOLD);
+		Turn_Timer.warning_glow_color = game.settings.get(CONST.MODULE, CONST.SETTING_WARNING_COLOR);
 		const element_template = document.createElement('template');
-		element_template.innerHTML = await renderTemplate(TEMPLATE_PATH, {});
+		element_template.innerHTML = await renderTemplate(CONST.TEMPLATE_PATH, {
+			bar_color: Turn_Timer.bar_color,
+			warning_glow_color: Turn_Timer.warning_glow_color,
+		});
 		Turn_Timer.element = element_template.content.firstChild;
-		Turn_Timer.default_duration = game.settings.get(MODULE, SETTING_DEFAULT_TURN_DURATION);
-		Turn_Timer.force_end_turn = game.settings.get(MODULE, SETTING_FORCE_TURN_CHANGE);
 	}
 
 	// requires accessing users, so game must be ready before running
@@ -47,7 +50,7 @@ export class Turn_Timer {
 
 	static prepare_hooks() {
 		Hooks.once('ready', () => {
-			Turn_Timer.parse_custom_durations(game.settings.get(MODULE, SETTING_CUSTOM_TURN_DURATIONS));
+			Turn_Timer.parse_custom_durations(game.settings.get(CONST.MODULE, CONST.SETTING_CUSTOM_TURN_DURATIONS));
 			Hooks.on('combatStart', Turn_Timer.attach_timer);
 			Hooks.on('combatTurn', Turn_Timer.attach_timer);
 			Hooks.on('combatRound', Turn_Timer.attach_timer);
@@ -75,25 +78,26 @@ export class Turn_Timer {
 	}
 
 	constructor(owners, combat, options = {}) {
-		this.set_lifespan(owners);
 		this.combat = combat;
+		this.calculate_lifespan(owners);
+		this.warning_not_triggered = true;
+		this.progress = 0;
 		this.timers = [];
 
 		this.hookID = Hooks.on('renderCombatTracker', (combatTracker, html, data) => {
 			if (this.combat.id === combatTracker.viewed?.id) {
 				const new_node = Turn_Timer.element.cloneNode(true);
 				html[0].querySelector(`nav#combat-controls`).insertAdjacentElement('beforebegin', new_node);
-				new_node.querySelector('span.by-timer-text').textContent = `${Math.floor(this.lifespan / 1000)}s`;
+				this.set_element_style(new_node);
 				this.timers.push(new_node);
 			}
 		});
 
-		this.warning_not_triggered = true;
-		this.progress = 0;
+
 		this.intervalID = setInterval(this.update_timer_bars.bind(this), Turn_Timer.interval);
 	}
 
-	set_lifespan(owners) {
+	calculate_lifespan(owners) {
 		let custom_durations_empty = true;
 		for (let i in Turn_Timer.custom_durations) {
 			custom_durations_empty = false;
@@ -117,21 +121,17 @@ export class Turn_Timer {
 		}
 	}
 
+	set_element_style(timer) {
+		const text_time = `${Math.floor((this.lifespan - this.progress) / 1000)}s`;
+		const style_width = `${Math.min(this.progress / this.lifespan, 1) * 100}%`;
+		const style_warning_glow = this.warning_not_triggered ? "none" : "by-pulse-glow";
+		timer.querySelector('span.by-timer-text').textContent = text_time;
+		timer.querySelector('div.by-timer-bar').style['width'] = style_width;
+		timer.querySelector('div.by-bar-warning').style['animation-name'] = style_warning_glow;
+	}
+
 	update_timer_bars() {
 		this.progress += Turn_Timer.interval;
-
-		// Update timer bars still in DOM, remove ones that aren't
-		const new_width = `${Math.min(this.progress / this.lifespan, 1) * 100}%`;
-		const new_time = `${Math.floor((this.lifespan - this.progress) / 1000)}s`;
-		for (let i = 0; i < this.timers.length; i++) {
-			if (document.body.contains(this.timers[i])) {
-				this.timers[i].querySelector('div.by-timer-bar').style['width'] = new_width;
-				this.timers[i].querySelector('span.by-timer-text').textContent = new_time;
-			} else {
-				this.timers[i] = null;
-			}
-		}
-		this.timers = this.timers.filter((t) => t !== null);
 
 		if (
 			Turn_Timer.warning_threshold >= 0 &&
@@ -139,12 +139,20 @@ export class Turn_Timer {
 			(this.lifespan - this.progress) / this.lifespan <= Turn_Timer.warning_threshold
 		) {
 			this.warning_not_triggered = false;
-
-			// play warning sound
-
-			// attach warning highlight
-			
+			// TODO play warning sound
 		}
+
+		// Update timer bars still in DOM, remove ones that aren't
+		const new_width = `${Math.min(this.progress / this.lifespan, 1) * 100}%`;
+		const new_time = `${Math.floor((this.lifespan - this.progress) / 1000)}s`;
+		for (let i = 0; i < this.timers.length; i++) {
+			if (document.body.contains(this.timers[i])) {
+				this.set_element_style(this.timers[i]);
+			} else {
+				this.timers[i] = null;
+			}
+		}
+		this.timers = this.timers.filter((t) => t !== null);
 
 		// Timer is finished, stop updating
 		if (this.progress >= this.lifespan) {
