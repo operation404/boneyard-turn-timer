@@ -88,6 +88,7 @@ export class Turn_Timer {
 			}
 		});
 
+		this.warning_not_triggered = true;
 		this.progress = 0;
 		this.intervalID = setInterval(this.update_timer_bars.bind(this), Turn_Timer.interval);
 	}
@@ -118,24 +119,38 @@ export class Turn_Timer {
 
 	update_timer_bars() {
 		this.progress += Turn_Timer.interval;
-		const new_width = `${Math.min(this.progress / this.lifespan, 1) * 100}%`;
 
+		// Update timer bars still in DOM, remove ones that aren't
+		const new_width = `${Math.min(this.progress / this.lifespan, 1) * 100}%`;
+		const new_time = `${Math.floor((this.lifespan - this.progress) / 1000)}s`;
 		for (let i = 0; i < this.timers.length; i++) {
 			if (document.body.contains(this.timers[i])) {
 				this.timers[i].querySelector('div.by-timer-bar').style['width'] = new_width;
-				this.timers[i].querySelector('span.by-timer-text').textContent = `${Math.floor(
-					(this.lifespan - this.progress) / 1000
-				)}s`;
+				this.timers[i].querySelector('span.by-timer-text').textContent = new_time;
 			} else {
 				this.timers[i] = null;
 			}
 		}
 		this.timers = this.timers.filter((t) => t !== null);
 
-		if (this.progress >= this.lifespan) {			
+		if (
+			Turn_Timer.warning_threshold >= 0 &&
+			this.warning_not_triggered &&
+			(this.lifespan - this.progress) / this.lifespan <= Turn_Timer.warning_threshold
+		) {
+			this.warning_not_triggered = false;
+
+			// play warning sound
+
+			// attach warning highlight
+			
+		}
+
+		// Timer is finished, stop updating
+		if (this.progress >= this.lifespan) {
 			if (Turn_Timer.force_end_turn) {
 				this.remove();
-				this.combat.nextTurn();	
+				this.combat.nextTurn();
 			} else {
 				clearInterval(this.intervalID);
 			}
