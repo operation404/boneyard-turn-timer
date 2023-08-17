@@ -7,32 +7,12 @@ import {
 } from './constants.js';
 
 export class Turn_Timer {
-	static template;
 	static default_duration;
 	static force_end_turn;
 	static custom_durations;
 	static element;
 	static timer;
 	static interval = 10; // ms
-	static timers = [];
-
-	/* 
-    MAJOR TODO
-    -----------------------------------------------
-
-    the turn timer objects themselves are one and dones, made to represent a single timer bar
-	and destroyed when that bar is finished
-
-	HTML CSS animations aren't going to work for this. As they only start when actually revealing the
-	html element, whereas I need the bar to start filling even when the combat tab isn't focused. Bar
-	progress has to be done another way, either in js or a different html/css approach that won't
-	rely on having the element visible to start filling the bar
-
-    also make a preview thingy to let a player know they'll be up in X turns, but make
-    sure to check for hidden people to not give them away based on position in turn order
-
-
-*/
 
 	static async init() {
 		await Turn_Timer.prepare_data();
@@ -42,9 +22,8 @@ export class Turn_Timer {
 	}
 
 	static async prepare_data() {
-		Turn_Timer.template = await getTemplate(TEMPLATE_PATH);
 		const element_template = document.createElement('template');
-		element_template.innerHTML = Turn_Timer.template({}).trim();
+		element_template.innerHTML = await renderTemplate(TEMPLATE_PATH, {});
 		Turn_Timer.element = element_template.content.firstChild;
 
 		Turn_Timer.default_duration = game.settings.get(MODULE, SETTING_DEFAULT_TURN_DURATION);
@@ -74,16 +53,8 @@ export class Turn_Timer {
 	}
 
 	static attach_timer(combat, updateData, updateOptions) {
-		console.log(Turn_Timer.timers);
-		Turn_Timer.timers.forEach((timer) => timer.remove());
+		Turn_Timer.timer?.remove();
 		console.log(combat, updateData, updateOptions);
-
-
-		// TODO
-		// this works, but it only puts one timer bar on...
-		// I need to do this either 1 OR 2 times, but I don't have a good way of
-		// figuring out how many times to do it
-		// need a way to check if there are two combat trackers active or not
 
 		if (combat.isActive) {
 			Hooks.once('updateCombat', (combat, change, options, userID) => {
@@ -95,36 +66,37 @@ export class Turn_Timer {
 				}
 				console.log(owners, actor, combat.combatants.get(combat.current.combatantId));
 
-				// if owners.length === 0, GM owns token, don't make a turn timer
+				// if 0, gm owns token, don't make timer
 				if (owners.length > 0) {
-					Hooks.once('renderCombatTracker', (combatTracker, html, data) => {
-						if (combat.id === combatTracker.viewed?.id) {
-							Turn_Timer.timers.push(
-								new Turn_Timer(html[0].querySelector(`nav#combat-controls`), owners)
-							);
-						}
-					});
+					Turn_Timer.timer = new Turn_Timer(owners, combat);
 				}
 			});
 		}
 	}
 
-	constructor(target, owners, options = {}) {
+	constructor(owners, combat, options = {}) {
 		this.set_lifespan(owners);
+		this.combat = combat;
+		this.timers = [];
 
-		const element_template = document.createElement('template');
-		element_template.innerHTML = Turn_Timer.template({}).trim();
-		this.element = element_template.content.firstChild;
+		this.hookID = Hooks.on('renderCombatTracker', (combatTracker, html, data) => {
+			if (this.combat.id === combatTracker.viewed?.id) {
+				const new_node = Turn_Timer.element.cloneNode();
+				html[0].querySelector(`nav#combat-controls`).insertAdjacentElement('beforebegin', new_node);
+				this.timers.push(new_node);
+			}
+		});
 
-		this.element.style['width'] = '0%';
-		target.insertAdjacentElement('beforebegin', this.element);
-		this.intervalID = setInterval(this.update_timer_bar.bind(this), Turn_Timer.interval);
 		this.progress = 0;
+		this.intervalID = setInterval(this.update_timer_bars.bind(this), Turn_Timer.interval);
 	}
 
 	set_lifespan(owners) {
 		let custom_durations_empty = true;
-		for (let i in Turn_Timer.custom_durations) custom_durations_empty = false;
+		for (let i in Turn_Timer.custom_durations) {
+			custom_durations_empty = false;
+			break;
+		}
 
 		if (!custom_durations_empty) {
 			let time = 0;
@@ -139,15 +111,26 @@ export class Turn_Timer {
 		}
 	}
 
-	update_timer_bar() {
+	update_timer_bars() {
 		this.progress += Turn_Timer.interval;
-		this.element.style['width'] = `${Math.min(this.progress / this.lifespan, 1) * 100}%`;
+		const new_width = `${Math.min(this.progress / this.lifespan, 1) * 100}%`;
+
+		for (let i = 0; i < this.timers.length; i++) {
+			if (document.body.contains(this.timers[i])) {
+				this.timers[i].style['width'] = new_width;
+			} else {
+				this.timers[i] = null;
+			}
+		}
+		this.timers = this.timers.filter((t) => t !== null);
+
 		if (this.progress >= this.lifespan) this.remove();
 	}
 
 	remove() {
 		clearInterval(this.intervalID);
-		this.element.remove();
-		Turn_Timer.timers.splice(Turn_Timer.timers.indexOf(this), 1);
+		Hooks.off('renderCombatTracker', this.hookID);
+		this.timers.forEach((t) => t.remove());
+		Turn_Timer.timer = null;
 	}
 }
