@@ -1,12 +1,14 @@
 import * as CONST from './constants.js';
 
 export class Turn_Timer {
+	static interval = 25; // milliseconds
+	static min_turn_duration = 1; // seconds TODO keep 1? or raise to like, 10?... Needs to be at least 1 though, or weird shit may happen
+
 	static default_duration;
 	static force_end_turn;
 	static custom_durations;
 	static element;
 	static timer;
-	static interval = 25; // ms
 	static bar_color;
 	static warning_threshold;
 	static warning_glow_color;
@@ -21,8 +23,12 @@ export class Turn_Timer {
 	static async prepare_data() {
 		Turn_Timer.default_duration = game.settings.get(CONST.MODULE, CONST.SETTING_DEFAULT_TURN_DURATION);
 		Turn_Timer.force_end_turn = game.settings.get(CONST.MODULE, CONST.SETTING_FORCE_TURN_CHANGE);
-		Turn_Timer.bar_color = game.settings.get(CONST.MODULE, CONST.SETTING_BAR_COLOR);
 		Turn_Timer.warning_threshold = game.settings.get(CONST.MODULE, CONST.SETTING_WARNING_THRESHOLD);
+		await Turn_Timer.generate_base_element();
+	}
+
+	static async generate_base_element() {
+		Turn_Timer.bar_color = game.settings.get(CONST.MODULE, CONST.SETTING_BAR_COLOR);
 		Turn_Timer.warning_glow_color = game.settings.get(CONST.MODULE, CONST.SETTING_WARNING_COLOR);
 		const element_template = document.createElement('template');
 		element_template.innerHTML = await renderTemplate(CONST.TEMPLATE_PATH, {
@@ -30,6 +36,15 @@ export class Turn_Timer {
 			warning_glow_color: Turn_Timer.warning_glow_color,
 		});
 		Turn_Timer.element = element_template.content.firstChild;
+	}
+
+	static prepare_hooks() {
+		Hooks.once('ready', () => {
+			Turn_Timer.parse_custom_durations(game.settings.get(CONST.MODULE, CONST.SETTING_CUSTOM_TURN_DURATIONS));
+			Hooks.on('combatStart', Turn_Timer.attach_timer);
+			Hooks.on('combatTurn', Turn_Timer.attach_timer);
+			Hooks.on('combatRound', Turn_Timer.attach_timer);
+		});
 	}
 
 	// requires accessing users, so game must be ready before running
@@ -42,19 +57,12 @@ export class Turn_Timer {
 				name = name.trim();
 				const user = game.users.find((user) => user.name === name);
 				time = parseInt(time.trim());
-				if (user !== undefined && !isNaN(time)) custom_durations[user.id] = time;
+				if (user !== undefined && !isNaN(time))
+					custom_durations[user.id] =
+						time < Turn_Timer.min_turn_duration ? Turn_Timer.min_turn_duration : time;
 			}
 		});
 		Turn_Timer.custom_durations = custom_durations;
-	}
-
-	static prepare_hooks() {
-		Hooks.once('ready', () => {
-			Turn_Timer.parse_custom_durations(game.settings.get(CONST.MODULE, CONST.SETTING_CUSTOM_TURN_DURATIONS));
-			Hooks.on('combatStart', Turn_Timer.attach_timer);
-			Hooks.on('combatTurn', Turn_Timer.attach_timer);
-			Hooks.on('combatRound', Turn_Timer.attach_timer);
-		});
 	}
 
 	static attach_timer(combat, updateData, updateOptions) {
@@ -93,7 +101,6 @@ export class Turn_Timer {
 			}
 		});
 
-
 		this.intervalID = setInterval(this.update_timer_bars.bind(this), Turn_Timer.interval);
 	}
 
@@ -124,7 +131,7 @@ export class Turn_Timer {
 	set_element_style(timer) {
 		const text_time = `${Math.floor((this.lifespan - this.progress) / 1000)}s`;
 		const style_width = `${Math.min(this.progress / this.lifespan, 1) * 100}%`;
-		const style_warning_glow = this.warning_not_triggered ? "none" : "by-pulse-glow";
+		const style_warning_glow = this.warning_not_triggered ? 'none' : 'by-pulse-glow';
 		timer.querySelector('span.by-timer-text').textContent = text_time;
 		timer.querySelector('div.by-timer-bar').style['width'] = style_width;
 		timer.querySelector('div.by-bar-warning').style['animation-name'] = style_warning_glow;
