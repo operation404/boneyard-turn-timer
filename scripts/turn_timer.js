@@ -132,9 +132,13 @@ export class Turn_Timer {
 		}
 		this.timers = this.timers.filter((t) => t !== null);
 
-		if (this.progress >= this.lifespan) {
-			this.remove();
-			if (Turn_Timer.force_end_turn) this.combat.nextTurn();
+		if (this.progress >= this.lifespan) {			
+			if (Turn_Timer.force_end_turn) {
+				this.remove();
+				this.combat.nextTurn();	
+			} else {
+				clearInterval(this.intervalID);
+			}
 		}
 	}
 
