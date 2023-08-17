@@ -12,7 +12,7 @@ export class Turn_Timer {
 	static custom_durations;
 	static element;
 	static timer;
-	static interval = 10; // ms
+	static interval = 50; // ms
 
 	static async init() {
 		await Turn_Timer.prepare_data();
@@ -83,8 +83,8 @@ export class Turn_Timer {
 			if (this.combat.id === combatTracker.viewed?.id) {
 				const new_node = Turn_Timer.element.cloneNode(true);
 				html[0].querySelector(`nav#combat-controls`).insertAdjacentElement('beforebegin', new_node);
+				new_node.querySelector("span.by-timer-text").textContent = `${Math.floor(this.lifespan / 1000)}s`
 				this.timers.push(new_node);
-				console.log(new_node);
 			}
 		});
 
@@ -119,6 +119,7 @@ export class Turn_Timer {
 		for (let i = 0; i < this.timers.length; i++) {
 			if (document.body.contains(this.timers[i])) {
 				this.timers[i].querySelector('div.by-timer-bar').style['width'] = new_width;
+				this.timers[i].querySelector('span.by-timer-text').textContent = `${Math.floor((this.lifespan - this.progress) / 1000)}s`;
 			} else {
 				this.timers[i] = null;
 			}
