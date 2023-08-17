@@ -12,7 +12,7 @@ export class Turn_Timer {
 	static custom_durations;
 	static element;
 	static timer;
-	static interval = 50; // ms
+	static interval = 25; // ms
 
 	static async init() {
 		await Turn_Timer.prepare_data();
@@ -78,7 +78,6 @@ export class Turn_Timer {
 		this.set_lifespan(owners);
 		this.combat = combat;
 		this.timers = [];
-		this.bars = [];
 
 		this.hookID = Hooks.on('renderCombatTracker', (combatTracker, html, data) => {
 			if (this.combat.id === combatTracker.viewed?.id) {
