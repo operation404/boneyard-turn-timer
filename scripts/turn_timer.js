@@ -25,6 +25,20 @@ export class Turn_Timer {
 	// ------------------------------------------------------------------------
 	// Socket methods
 
+	/*
+		payload has to be the only argument if I wish to keep it an object, if
+		multiple arguments are passed and some are objects they are automatically
+		unfolded and their properties are passed as individual arguments as well.
+		But if there's only one argument that is an object, it is properly
+		preserved and received as an object on the other side. Keeping it as
+		an object is desirable when there are multiple methods that the
+		socket is responsible for as they may have differing amounts of args.
+
+		This behavior seems specific to Foundry's import/implementation of
+		socket io v4, as the docs suggest any arg can be an object and be
+		properly serialized and preserved, no weird unfolding should occur.
+	*/
+
 	static _on_received(payload) {
 		switch (payload.type) {
 			case 'attach':
