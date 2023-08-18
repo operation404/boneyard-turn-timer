@@ -14,11 +14,8 @@ export const SETTING_BAR_COLOR = 'bar_color';
 export const SETTING_WARNING_THRESHOLD = 'warning_threshold';
 export const SETTING_WARNING_COLOR = 'warning_color';
 export const SETTING_WARNING_SOUND = 'warning_sound';
-export const SETTING_WARNING_SOUND_VOLUME = 'warning_sound_volume';
 
 export const SETTING_TURN_START_SOUND = 'turn_start_sound';
-export const SETTING_TURN_START_SOUND_VOLUME = 'turn_start_sound_volume';
 
 export const SETTING_NEXT_UP_ALERT = 'next_up_alert';
 export const SETTING_NEXT_UP_SOUND = 'next_up_sound';
-export const SETTING_NEXT_UP_SOUND_VOLUME = 'next_up_sound_volume';

@@ -121,25 +121,6 @@ export function prepare_settings() {
 		},
 	});
 
-	game.settings.register(CONST.MODULE, CONST.SETTING_WARNING_SOUND_VOLUME, {
-		name: `SETTINGS.NAME.${CONST.SETTING_WARNING_SOUND_VOLUME}`,
-		hint: `SETTINGS.HINT.${CONST.SETTING_WARNING_SOUND_VOLUME}`,
-		scope: 'client',
-		config: true,
-		type: Number,
-		default: 0.5,
-		range: {
-			min: 0,
-			max: 1.0,
-			step: 0.05,
-		},
-		requiresReload: false,
-		onChange: (value) => {
-			Turn_Timer.sound.warning.volume = value;
-			if (Turn_Timer.sound.warning.value) Turn_Timer.sound.warning.value.volume = value;
-		},
-	});
-
 	game.settings.register(CONST.MODULE, CONST.SETTING_TURN_START_SOUND, {
 		name: `SETTINGS.NAME.${CONST.SETTING_TURN_START_SOUND}`,
 		hint: `SETTINGS.HINT.${CONST.SETTING_TURN_START_SOUND}`,
@@ -150,25 +131,6 @@ export function prepare_settings() {
 		requiresReload: false,
 		onChange: (value) => {
 			Turn_Timer.set_sound('turn_start', value);
-		},
-	});
-
-	game.settings.register(CONST.MODULE, CONST.SETTING_TURN_START_SOUND_VOLUME, {
-		name: `SETTINGS.NAME.${CONST.SETTING_TURN_START_SOUND_VOLUME}`,
-		hint: `SETTINGS.HINT.${CONST.SETTING_TURN_START_SOUND_VOLUME}`,
-		scope: 'client',
-		config: true,
-		type: Number,
-		default: 0.5,
-		range: {
-			min: 0,
-			max: 1.0,
-			step: 0.05,
-		},
-		requiresReload: false,
-		onChange: (value) => {
-			Turn_Timer.sound.turn_start.volume = value;
-			if (Turn_Timer.sound.turn_start.value) Turn_Timer.sound.turn_start.value.volume = value;
 		},
 	});
 
@@ -198,22 +160,4 @@ export function prepare_settings() {
 		},
 	});
 
-	game.settings.register(CONST.MODULE, CONST.SETTING_NEXT_UP_SOUND_VOLUME, {
-		name: `SETTINGS.NAME.${CONST.SETTING_NEXT_UP_SOUND_VOLUME}`,
-		hint: `SETTINGS.HINT.${CONST.SETTING_NEXT_UP_SOUND_VOLUME}`,
-		scope: 'client',
-		config: true,
-		type: Number,
-		default: 0.5,
-		range: {
-			min: 0,
-			max: 1.0,
-			step: 0.05,
-		},
-		requiresReload: false,
-		onChange: (value) => {
-			Turn_Timer.sound.next_up.volume = value;
-			if (Turn_Timer.sound.next_up.value) Turn_Timer.sound.next_up.value.volume = value;
-		},
-	});
 }

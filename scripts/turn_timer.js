@@ -1,22 +1,11 @@
 import * as CONST from './constants.js';
 
-
-/*
-	TODO
-
-	I think I may also need to use sockets for playing the sounds, as rn it's basically
-	not functional and I don't know why. When I try to play sounds on a player user, it
-	does sometimes say they aren't loaded even though they should be loaded during set up.
-
-*/
-
-
 export class Turn_Timer {
 	static interval = 25; // milliseconds
-	static min_turn_duration = 1; // seconds TODO keep 1? or raise to like, 10?... Needs to be at least 1 though, or weird shit may happen
-	static toggle_buttons = [];
+	static min_turn_duration = 1; // seconds
 
 	static active;
+	static toggle_buttons = [];
 	static default_duration;
 	static force_end_turn;
 	static custom_durations;
@@ -28,120 +17,30 @@ export class Turn_Timer {
 	static toggle_button_element;
 	static next_up_alert;
 	static sound = {
-		warning: {
-			value: null,
-			volume: 0,
-		},
-		turn_start: {
-			value: null,
-			volume: 0,
-		},
-		next_up: {
-			value: null,
-			volume: 0,
-		},
+		warning: null,
+		turn_start: null,
+		next_up: null,
 	};
 
-	static async init() {
-		await Turn_Timer.prepare_init_data();
-		Turn_Timer.prepare_hooks();
-		window.Turn_Timer = Turn_Timer;
-		console.log(`====== Boneyard ======\n - Turn timer initialized`);
-	}
+	// ------------------------------------------------------------------------
+	// Socket methods
 
-	static async prepare_init_data() {
-		Turn_Timer.active = game.settings.get(CONST.MODULE, CONST.SETTING_ACTIVE);
-
-		Turn_Timer.default_duration = game.settings.get(CONST.MODULE, CONST.SETTING_DEFAULT_TURN_DURATION);
-		Turn_Timer.force_end_turn = game.settings.get(CONST.MODULE, CONST.SETTING_FORCE_TURN_CHANGE);
-		Turn_Timer.warning_threshold = game.settings.get(CONST.MODULE, CONST.SETTING_WARNING_THRESHOLD);
-		Turn_Timer.next_up_alert = game.settings.get(CONST.MODULE, CONST.SETTING_NEXT_UP_ALERT);
-
-		await Turn_Timer.generate_base_element();
-		const element_template = document.createElement('template');
-		element_template.innerHTML = await renderTemplate(CONST.CONTROL_TEMPLATE_PATH, {});
-		Turn_Timer.toggle_button_element = element_template.content.firstChild;
-
-		Turn_Timer.sound.warning.volume = game.settings.get(CONST.MODULE, CONST.SETTING_WARNING_SOUND_VOLUME);
-		Turn_Timer.sound.turn_start.volume = game.settings.get(CONST.MODULE, CONST.SETTING_TURN_START_SOUND_VOLUME);
-		Turn_Timer.sound.next_up.volume = game.settings.get(CONST.MODULE, CONST.SETTING_NEXT_UP_SOUND_VOLUME);
-	}
-
-	static async generate_base_element() {
-		Turn_Timer.bar_color = game.settings.get(CONST.MODULE, CONST.SETTING_BAR_COLOR);
-		Turn_Timer.warning_glow_color = game.settings.get(CONST.MODULE, CONST.SETTING_WARNING_COLOR);
-		const element_template = document.createElement('template');
-		element_template.innerHTML = await renderTemplate(CONST.TIMER_TEMPLATE_PATH, {
-			bar_color: Turn_Timer.bar_color,
-			warning_glow_color: Turn_Timer.warning_glow_color,
-		});
-		Turn_Timer.element = element_template.content.firstChild;
-	}
-
-	static async set_sound(setting, path) {
-		console.log("loading sound at path", path);
-		const sound = new Sound(path);
-		await sound.load();
-		sound.volume = Turn_Timer.sound[setting].volume;
-		Turn_Timer.sound[setting].value = sound.failed ? null : sound;
-	}
-
-	static prepare_hooks() {
-		Hooks.once('ready', () => {
-			Turn_Timer.prepare_ready_data();
-			if (game.user.isGM) Hooks.on('renderCombatTracker', Turn_Timer.attach_toggle_button);
-			if (Turn_Timer.active) Turn_Timer.toggle_timer_hooks();
-			game.socket.on(CONST.SOCKET, Turn_Timer._inject_next_update);
-		});
-	}
-
-	static prepare_ready_data() {
-		Turn_Timer.parse_custom_durations(game.settings.get(CONST.MODULE, CONST.SETTING_CUSTOM_TURN_DURATIONS));
-		Turn_Timer.set_sound('warning', game.settings.get(CONST.MODULE, CONST.SETTING_WARNING_SOUND));
-		Turn_Timer.set_sound('turn_start', game.settings.get(CONST.MODULE, CONST.SETTING_TURN_START_SOUND));
-		Turn_Timer.set_sound('next_up', game.settings.get(CONST.MODULE, CONST.SETTING_NEXT_UP_SOUND));
-	}
-
-	static toggle_timer_hooks() {
-		if (Turn_Timer.active) {
-			Hooks.on('combatStart', Turn_Timer.attach_timer);
-			Hooks.on('combatTurn', Turn_Timer.attach_timer);
-			Hooks.on('combatRound', Turn_Timer.attach_timer);
-		} else {
-			Hooks.off('combatStart', Turn_Timer.attach_timer);
-			Hooks.off('combatTurn', Turn_Timer.attach_timer);
-			Hooks.off('combatRound', Turn_Timer.attach_timer);
+	static _on_received(payload) {
+		switch (payload.type) {
+			case 'attach':
+				Turn_Timer._inject_next_update(payload);
+				break;
+			case 'active':
+				Turn_Timer._toggle_active(payload);
+				break;
+			default:
+				throw new Error('socket unknown type');
 		}
 	}
 
-	// requires accessing users, so game must be ready before running
-	// format: "Tony solo" 8, "the jimster" 12
-	static parse_custom_durations(str) {
-		const custom_durations = {};
-		str.split(',').forEach((token) => {
-			let [, name, time] = token.split(`"`);
-			if (name !== undefined && time !== undefined) {
-				name = name.trim();
-				const user = game.users.find((user) => user.name === name);
-				time = parseInt(time.trim());
-				if (user !== undefined && !isNaN(time))
-					custom_durations[user.id] =
-						time < Turn_Timer.min_turn_duration ? Turn_Timer.min_turn_duration : time;
-			}
-		});
-		Turn_Timer.custom_durations = custom_durations;
-	}
-
-	static attach_timer(combat, updateData, updateOptions) {
-		console.log('attach timer');
-		game.socket.emit(CONST.SOCKET, combat.id);
-		Turn_Timer._inject_next_update(combat.id);
-	}
-
-	static _inject_next_update(combatID) {
-		console.log('inject');
+	static _inject_next_update(payload) {
 		Turn_Timer.timer?.remove();
-		const combat = game.combats.get(combatID);
+		const combat = game.combats.get(payload.combatID);
 
 		if (combat?.isActive) {
 			Hooks.once('updateCombat', (combat, change, options, userID) => {
@@ -179,19 +78,7 @@ export class Turn_Timer {
 		}
 	}
 
-	static attach_toggle_button(combatTracker, html, data) {
-		const new_node = Turn_Timer.toggle_button_element.cloneNode(true);
-		html[0].querySelector(`a[data-control="rollNPC"]`).insertAdjacentElement('afterend', new_node);
-		html[0].querySelector(`h3.encounter-title`).style['margin-left'] = 0;
-		new_node.addEventListener('click', Turn_Timer.toggle_button_handler);
-		if (Turn_Timer.active) {
-			new_node.style['text-shadow'] = '0 0 8px blue';
-			new_node.dataset.tooltip = 'Toggle turn timers off';
-		}
-		Turn_Timer.toggle_buttons.push(new_node);
-	}
-
-	static toggle_button_handler(e) {
+	static _toggle_active(payload) {
 		Turn_Timer.active = !Turn_Timer.active;
 		Turn_Timer.toggle_timer_hooks();
 		Turn_Timer.timer?.remove();
@@ -211,15 +98,131 @@ export class Turn_Timer {
 			}
 		}
 		Turn_Timer.toggle_buttons = Turn_Timer.toggle_buttons.filter((t) => t !== null);
+	}
 
+	// ------------------------------------------------------------------------
+	// Class methods
+
+	static async init() {
+		await Turn_Timer.prepare_init_data();
+		Turn_Timer.prepare_hooks();
+		window.Turn_Timer = Turn_Timer;
+		console.log(`====== Boneyard ======\n - Turn timer initialized`);
+	}
+
+	static async prepare_init_data() {
+		Turn_Timer.active = game.settings.get(CONST.MODULE, CONST.SETTING_ACTIVE);
+
+		Turn_Timer.default_duration = game.settings.get(CONST.MODULE, CONST.SETTING_DEFAULT_TURN_DURATION);
+		Turn_Timer.force_end_turn = game.settings.get(CONST.MODULE, CONST.SETTING_FORCE_TURN_CHANGE);
+		Turn_Timer.warning_threshold = game.settings.get(CONST.MODULE, CONST.SETTING_WARNING_THRESHOLD);
+		Turn_Timer.next_up_alert = game.settings.get(CONST.MODULE, CONST.SETTING_NEXT_UP_ALERT);
+
+		await Turn_Timer.generate_base_element();
+		const element_template = document.createElement('template');
+		element_template.innerHTML = await renderTemplate(CONST.CONTROL_TEMPLATE_PATH, {});
+		Turn_Timer.toggle_button_element = element_template.content.firstChild;
+	}
+
+	static async generate_base_element() {
+		Turn_Timer.bar_color = game.settings.get(CONST.MODULE, CONST.SETTING_BAR_COLOR);
+		Turn_Timer.warning_glow_color = game.settings.get(CONST.MODULE, CONST.SETTING_WARNING_COLOR);
+		const element_template = document.createElement('template');
+		element_template.innerHTML = await renderTemplate(CONST.TIMER_TEMPLATE_PATH, {
+			bar_color: Turn_Timer.bar_color,
+			warning_glow_color: Turn_Timer.warning_glow_color,
+		});
+		Turn_Timer.element = element_template.content.firstChild;
+	}
+
+	static async set_sound(setting, path) {
+		const sound = new Sound(path);
+		await sound.load();
+		Turn_Timer.sound[setting] = sound.failed ? null : sound;
+	}
+
+	static prepare_hooks() {
+		Hooks.once('ready', () => {
+			Turn_Timer.prepare_ready_data();
+			if (game.user.isGM) Hooks.on('renderCombatTracker', Turn_Timer.attach_toggle_button);
+			if (Turn_Timer.active) Turn_Timer.toggle_timer_hooks();
+			game.socket.on(CONST.SOCKET, Turn_Timer._on_received);
+		});
+	}
+
+	// Some data requires the game to have finished initializing before preparing
+	// in order to access various Foundry methods/documents
+	static prepare_ready_data() {
+		Turn_Timer.parse_custom_durations(game.settings.get(CONST.MODULE, CONST.SETTING_CUSTOM_TURN_DURATIONS));
+		Turn_Timer.set_sound('warning', game.settings.get(CONST.MODULE, CONST.SETTING_WARNING_SOUND));
+		Turn_Timer.set_sound('turn_start', game.settings.get(CONST.MODULE, CONST.SETTING_TURN_START_SOUND));
+		Turn_Timer.set_sound('next_up', game.settings.get(CONST.MODULE, CONST.SETTING_NEXT_UP_SOUND));
+	}
+
+	static toggle_timer_hooks() {
+		if (Turn_Timer.active) {
+			Hooks.on('combatStart', Turn_Timer.attach_timer);
+			Hooks.on('combatTurn', Turn_Timer.attach_timer);
+			Hooks.on('combatRound', Turn_Timer.attach_timer);
+		} else {
+			Hooks.off('combatStart', Turn_Timer.attach_timer);
+			Hooks.off('combatTurn', Turn_Timer.attach_timer);
+			Hooks.off('combatRound', Turn_Timer.attach_timer);
+		}
+	}
+
+	// format: "example name 1" 30, "example name 2" 45
+	static parse_custom_durations(str) {
+		const custom_durations = {};
+		str.split(',').forEach((token) => {
+			let [, name, time] = token.split(`"`);
+			if (name !== undefined && time !== undefined) {
+				name = name.trim();
+				const user = game.users.find((user) => user.name === name);
+				time = parseInt(time.trim());
+				if (user !== undefined && !isNaN(time))
+					custom_durations[user.id] =
+						time < Turn_Timer.min_turn_duration ? Turn_Timer.min_turn_duration : time;
+			}
+		});
+		Turn_Timer.custom_durations = custom_durations;
+	}
+
+	static attach_timer(combat, updateData, updateOptions) {
+		const payload = { type: 'attach', combatID: combat.id };
+		game.socket.emit(CONST.SOCKET, payload);
+		Turn_Timer._inject_next_update(payload);
+	}
+
+	static attach_toggle_button(combatTracker, html, data) {
+		const new_node = Turn_Timer.toggle_button_element.cloneNode(true);
+		html[0].querySelector(`a[data-control="rollNPC"]`).insertAdjacentElement('afterend', new_node);
+		html[0].querySelector(`h3.encounter-title`).style['margin-left'] = 0;
+		new_node.addEventListener('click', Turn_Timer.toggle_button_handler);
+		if (Turn_Timer.active) {
+			new_node.style['text-shadow'] = '0 0 8px blue';
+			new_node.dataset.tooltip = 'Toggle turn timers off';
+		}
+		Turn_Timer.toggle_buttons.push(new_node);
+	}
+
+	static toggle_button_handler(e) {
+		const payload = { type: 'active' };
+		game.socket.emit(CONST.SOCKET, payload);
+		Turn_Timer._toggle_active(payload);
 		game.settings.set(CONST.MODULE, CONST.SETTING_ACTIVE, Turn_Timer.active);
 	}
 
-	static play_sound(sound, users) {
-		console.log(sound, users, Turn_Timer.sound[sound].value);
-		if (Turn_Timer.sound[sound].value === null || users.length === 0) return;
-		if (users.includes(game.user.id)) Turn_Timer.sound[sound].value.play();
+	static async play_sound(sound, users) {
+		if (Turn_Timer.sound[sound] === null || users.length === 0) return;
+		if (users.includes(game.user.id)) {
+			if (!Turn_Timer.sound[sound].loaded) await Turn_Timer.sound[sound].load();
+			Turn_Timer.sound[sound].play({ volume: game.settings.get('core', 'globalInterfaceVolume') });
+		}
 	}
+
+	// ------------------------------------------------------------------------
+	// Instance methods
 
 	constructor(owners, combat) {
 		this.combat = combat;
