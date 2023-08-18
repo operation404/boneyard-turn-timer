@@ -53,26 +53,8 @@ export function prepare_settings() {
 		},
 	});
 
-	const default_bar_color = '#D0D000';
-	game.settings.register(CONST.MODULE, CONST.SETTING_BAR_COLOR, {
-		name: `SETTINGS.NAME.${CONST.SETTING_BAR_COLOR}`,
-		hint: `SETTINGS.HINT.${CONST.SETTING_BAR_COLOR}`,
-		scope: 'world',
-		config: true,
-		type: String,
-		default: default_bar_color,
-		requiresReload: false,
-		onChange: (value) => {
-			if (!hex_test.test(value)) {
-				game.settings.set(CONST.MODULE, CONST.SETTING_BAR_COLOR, default_bar_color);
-			}
-			Turn_Timer.generate_base_element();
-		},
-	});
-
 	// What percentage of time left on the timer to give a warning
-	// -0.05 doesn't warn at all
-	// 0 warns as timer is finished
+	// 0 warns as timer is finished, -0.05 doesn't warn at all
 	game.settings.register(CONST.MODULE, CONST.SETTING_WARNING_THRESHOLD, {
 		name: `SETTINGS.NAME.${CONST.SETTING_WARNING_THRESHOLD}`,
 		hint: `SETTINGS.HINT.${CONST.SETTING_WARNING_THRESHOLD}`,
@@ -88,6 +70,36 @@ export function prepare_settings() {
 		requiresReload: false,
 		onChange: (value) => {
 			Turn_Timer.warning_threshold = value;
+		},
+	});
+
+	game.settings.register(CONST.MODULE, CONST.SETTING_NEXT_UP_ALERT, {
+		name: `SETTINGS.NAME.${CONST.SETTING_NEXT_UP_ALERT}`,
+		hint: `SETTINGS.HINT.${CONST.SETTING_NEXT_UP_ALERT}`,
+		scope: 'world',
+		config: true,
+		type: Boolean,
+		default: true,
+		requiresReload: false,
+		onChange: (value) => {
+			Turn_Timer.toggle_button_element = value;
+		},
+	});
+
+	const default_bar_color = '#D0D000';
+	game.settings.register(CONST.MODULE, CONST.SETTING_BAR_COLOR, {
+		name: `SETTINGS.NAME.${CONST.SETTING_BAR_COLOR}`,
+		hint: `SETTINGS.HINT.${CONST.SETTING_BAR_COLOR}`,
+		scope: 'world',
+		config: true,
+		type: String,
+		default: default_bar_color,
+		requiresReload: false,
+		onChange: (value) => {
+			if (!hex_test.test(value)) {
+				game.settings.set(CONST.MODULE, CONST.SETTING_BAR_COLOR, default_bar_color);
+			}
+			Turn_Timer.generate_base_element();
 		},
 	});
 
@@ -131,19 +143,6 @@ export function prepare_settings() {
 		requiresReload: false,
 		onChange: (value) => {
 			Turn_Timer.set_sound('turn_start', value);
-		},
-	});
-
-	game.settings.register(CONST.MODULE, CONST.SETTING_NEXT_UP_ALERT, {
-		name: `SETTINGS.NAME.${CONST.SETTING_NEXT_UP_ALERT}`,
-		hint: `SETTINGS.HINT.${CONST.SETTING_NEXT_UP_ALERT}`,
-		scope: 'world',
-		config: true,
-		type: Boolean,
-		default: true,
-		requiresReload: false,
-		onChange: (value) => {
-			Turn_Timer.toggle_button_element = value;
 		},
 	});
 
