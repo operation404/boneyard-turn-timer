@@ -63,12 +63,13 @@ export class Turn_Timer {
 				const current_owners = get_owners(game.actors.get(combat.combatant?.actorId));
 				const next_up_owners = get_owners(game.actors.get(combat.nextCombatant?.actorId));
 
-				// Don't play next up sound for users who are acting this round too
+				// Don't notify players who act next round if they're already acting this round
 				current_owners.forEach((userID) => {
 					const idx = next_up_owners.indexOf(userID);
 					if (idx !== -1) next_up_owners.splice(idx, 1);
 				});
 				Turn_Timer.play_sound('next_up', next_up_owners);
+				if (Turn_Timer.next_up_alert) Turn_Timer.send_alert(next_up_owners);
 
 				// if 0, gm owns token, don't make timer
 				if (current_owners.length > 0) {
@@ -218,6 +219,16 @@ export class Turn_Timer {
 		if (users.includes(game.user.id)) {
 			if (!Turn_Timer.sound[sound].loaded) await Turn_Timer.sound[sound].load();
 			Turn_Timer.sound[sound].play({ volume: game.settings.get('core', 'globalInterfaceVolume') });
+		}
+	}
+
+	static send_alert(users) {
+		if (users.includes(game.user.id)) {
+			ChatMessage.create({
+				user: game.user.id,
+				content: 'Your turn is up next!',
+				whisper: [game.user.id],
+			});
 		}
 	}
 
