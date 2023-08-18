@@ -79,7 +79,7 @@ export function prepare_settings() {
 		scope: 'world',
 		config: true,
 		type: Number,
-		default: 0.5,
+		default: 0.25,
 		range: {
 			min: -0.05,
 			max: 1.0,
@@ -114,7 +114,7 @@ export function prepare_settings() {
 		scope: 'world',
 		config: true,
 		type: String,
-		default: '',
+		default: 'modules/boneyard-turn-timer/assets/warning_sound.ogg',
 		requiresReload: false,
 		onChange: (value) => {
 			Turn_Timer.set_sound('warning', value);
@@ -127,7 +127,7 @@ export function prepare_settings() {
 		scope: 'world',
 		config: true,
 		type: String,
-		default: '',
+		default: 'modules/boneyard-turn-timer/assets/turn_start_sound.ogg',
 		requiresReload: false,
 		onChange: (value) => {
 			Turn_Timer.set_sound('turn_start', value);
@@ -153,7 +153,7 @@ export function prepare_settings() {
 		scope: 'world',
 		config: true,
 		type: String,
-		default: '',
+		default: 'modules/boneyard-turn-timer/assets/next_up_sound.ogg',
 		requiresReload: false,
 		onChange: (value) => {
 			Turn_Timer.set_sound('next_up', value);
