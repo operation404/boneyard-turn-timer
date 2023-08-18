@@ -1,5 +1,23 @@
 import * as CONST from './constants.js';
 
+
+/*
+	TODO
+
+	Big problem. combat start, next turn, and next round hooks are all client side only.
+	Only the person who actually clicks the button to advance the turn/round fires that
+	hook. Everyone else gets an updateCombat hook fire, but my main logic is inside of
+	those next turn hooks and I only do rendering n stuff in update. So I am going to
+	need a way to message all other clients and tell them when to create a timer, which
+	means I'm gonna need to use sockets.
+	
+	I think I may also need to use sockets for playing the sounds, as rn it's basically
+	not functional and I don't know why. When I try to play sounds on a player user, it
+	does sometimes say they aren't loaded even though they should be loaded during set up.
+
+*/
+
+
 export class Turn_Timer {
 	static interval = 25; // milliseconds
 	static min_turn_duration = 1; // seconds TODO keep 1? or raise to like, 10?... Needs to be at least 1 though, or weird shit may happen
@@ -68,6 +86,7 @@ export class Turn_Timer {
 	}
 
 	static async set_sound(setting, path) {
+		console.log("loading sound at path", path);
 		const sound = new Sound(path);
 		await sound.load();
 		sound.volume = Turn_Timer.sound[setting].volume;
@@ -77,7 +96,7 @@ export class Turn_Timer {
 	static prepare_hooks() {
 		Hooks.once('ready', () => {
 			Turn_Timer.prepare_ready_data();
-			Hooks.on('renderCombatTracker', Turn_Timer.attach_toggle_button);
+			if (game.user.isGM) Hooks.on('renderCombatTracker', Turn_Timer.attach_toggle_button);
 			if (Turn_Timer.active) Turn_Timer.toggle_timer_hooks();
 		});
 	}
@@ -142,11 +161,13 @@ export class Turn_Timer {
 
 				const current_owners = get_owners(game.actors.get(combat.combatant?.actorId));
 				const next_up_owners = get_owners(game.actors.get(combat.nextCombatant?.actorId));
-				current_owners.forEach(userID => {
+
+				// Don't play next up sound for users who are acting this round too
+				current_owners.forEach((userID) => {
 					const idx = next_up_owners.indexOf(userID);
 					if (idx !== -1) next_up_owners.splice(idx, 1);
 				});
-				Turn_Timer.play_sound("next_up", next_up_owners);
+				Turn_Timer.play_sound('next_up', next_up_owners);
 
 				// if 0, gm owns token, don't make timer
 				if (current_owners.length > 0) {
@@ -193,8 +214,9 @@ export class Turn_Timer {
 	}
 
 	static play_sound(sound, users) {
-		console.log(sound, users);
+		console.log(sound, users, Turn_Timer.sound[sound].value);
 		if (Turn_Timer.sound[sound].value === null || users.length === 0) return;
+		if (users.includes(game.user.id)) Turn_Timer.sound[sound].value.play();
 	}
 
 	constructor(owners, combat) {
