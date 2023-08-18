@@ -1,4 +1,5 @@
 export const MODULE = 'boneyard-turn-timer';
+export const SOCKET = 'module.boneyard-turn-timer';
 
 export const TIMER_TEMPLATE_PATH = 'modules/boneyard-turn-timer/templates/timer-bar.hbs';
 export const CONTROL_TEMPLATE_PATH = 'modules/boneyard-turn-timer/templates/toggle-control.hbs';

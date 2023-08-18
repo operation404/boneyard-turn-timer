@@ -4,13 +4,6 @@ import * as CONST from './constants.js';
 /*
 	TODO
 
-	Big problem. combat start, next turn, and next round hooks are all client side only.
-	Only the person who actually clicks the button to advance the turn/round fires that
-	hook. Everyone else gets an updateCombat hook fire, but my main logic is inside of
-	those next turn hooks and I only do rendering n stuff in update. So I am going to
-	need a way to message all other clients and tell them when to create a timer, which
-	means I'm gonna need to use sockets.
-	
 	I think I may also need to use sockets for playing the sounds, as rn it's basically
 	not functional and I don't know why. When I try to play sounds on a player user, it
 	does sometimes say they aren't loaded even though they should be loaded during set up.
@@ -98,6 +91,7 @@ export class Turn_Timer {
 			Turn_Timer.prepare_ready_data();
 			if (game.user.isGM) Hooks.on('renderCombatTracker', Turn_Timer.attach_toggle_button);
 			if (Turn_Timer.active) Turn_Timer.toggle_timer_hooks();
+			game.socket.on(CONST.SOCKET, Turn_Timer._inject_next_update);
 		});
 	}
 
@@ -139,9 +133,17 @@ export class Turn_Timer {
 	}
 
 	static attach_timer(combat, updateData, updateOptions) {
-		Turn_Timer.timer?.remove();
+		console.log('attach timer');
+		game.socket.emit(CONST.SOCKET, combat.id);
+		Turn_Timer._inject_next_update(combat.id);
+	}
 
-		if (combat.isActive) {
+	static _inject_next_update(combatID) {
+		console.log('inject');
+		Turn_Timer.timer?.remove();
+		const combat = game.combats.get(combatID);
+
+		if (combat?.isActive) {
 			Hooks.once('updateCombat', (combat, change, options, userID) => {
 				function get_owners(actor) {
 					let owners;

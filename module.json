@@ -38,6 +38,7 @@
       "path": "languages/en.json"
     }
   ],
+  "socket": true,
   "url": "#{URL}#",
   "manifest": "#{MANIFEST}#",
   "download": "#{DOWNLOAD}#",
