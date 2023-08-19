@@ -175,7 +175,7 @@ export class Turn_Timer {
 	}
 
 	static attach_timer(combat, updateData, updateOptions) {
-		const payload = { type: 'attach', combatID: combat.id };
+		const payload = { sender: game.user.id, type: 'attach', combatID: combat.id };
 		game.socket.emit(CONST.SOCKET, payload);
 		Turn_Timer._inject_next_update(payload);
 	}
@@ -194,7 +194,7 @@ export class Turn_Timer {
 	}
 
 	static toggle_button_handler(e) {
-		const payload = { type: 'active' };
+		const payload = { sender: game.user.id, type: 'active' };
 		game.socket.emit(CONST.SOCKET, payload);
 		Turn_Timer._toggle_active(payload);
 		game.settings.set(CONST.MODULE, CONST.SETTING_ACTIVE, Turn_Timer.active);
@@ -278,7 +278,15 @@ export class Turn_Timer {
 		if (this.progress >= this.lifespan) {
 			if (Turn_Timer.force_end_turn) {
 				this.remove();
-				this.combat.nextTurn();
+				if (
+					// only let the client belonging to the online GM with highest id end the turn
+					game.user.id ===
+					game.users.reduce((a, b) => {
+						return b.active && b.isGM && b.id > a ? b.id : a;
+					}, '')
+				) {
+					this.combat.nextTurn();
+				}
 			} else {
 				clearInterval(this.intervalID);
 			}

@@ -28,6 +28,8 @@ Various alerts can be configured to help players be prepared for their turn in c
 ## Automatic turn passing
 The timer can be configured to automatically continue to the next turn when the timer's duration has elapsed. This can also be disabled, allowing the timer to simply function as a reminder without forcing a player to end their turn early if they happen to need a little extra time. The timer will still be visible and give alerts while turn passing is disabled, but will halt at 0 seconds left once the timer's duration has elapsed.
 
+A GM must be online for automatic turn passing.
+
 <img src="https://github.com/operation404/boneyard-turn-timer/blob/master/images/turn pass disabled.png?raw=true" width=40%>
 
 ## Quick toggle timers on and off
