@@ -18,14 +18,14 @@
     "SETTINGS.HINT.warning_color": "The color of the flashing glow around the timer when the warning activates. Must be a hex color in the format of '#XXXXXX'.\nDefault: '#FF0000'",
     
     "SETTINGS.NAME.warning_sound": "Warning Sound",
-    "SETTINGS.HINT.warning_sound": "The path to a sound file to be played as a warning that a player's turn time is almost out. A blank input or incorrect path will result in no sound being played.\nDefault: ''",
+    "SETTINGS.HINT.warning_sound": "The path to a sound file to be played as a warning that a player's turn time is almost out. A blank input or incorrect path will result in no sound being played.\nDefault: 'modules/boneyard-turn-timer/assets/warning_sound.ogg'",
     
     "SETTINGS.NAME.turn_start_sound": "Turn Start Sound",
-    "SETTINGS.HINT.turn_start_sound": "The path to a sound file to be played at the start of a player's turn in order to alert them their turn has begun. A blank input or incorrect path will result in no sound being played.\nDefault: ''",
+    "SETTINGS.HINT.turn_start_sound": "The path to a sound file to be played at the start of a player's turn in order to alert them their turn has begun. A blank input or incorrect path will result in no sound being played.\nDefault: 'modules/boneyard-turn-timer/assets/turn_start_sound.ogg'",
     
     "SETTINGS.NAME.next_up_alert": "Next Up Chat Alert",
     "SETTINGS.HINT.next_up_alert": "Whether or not to send a whisper in the chat to a player letting them know their turn is coming up next.\nDefault: True",
     
     "SETTINGS.NAME.next_up_sound": "Next Up Sound",
-    "SETTINGS.HINT.next_up_sound": "The path to a sound file to be played the turn before a player's turn approaches in order to alert them their turn is coming up next. A blank input or incorrect path will result in no sound being played.\nDefault: ''"
+    "SETTINGS.HINT.next_up_sound": "The path to a sound file to be played the turn before a player's turn approaches in order to alert them their turn is coming up next. A blank input or incorrect path will result in no sound being played.\nDefault: 'modules/boneyard-turn-timer/assets/next_up_sound.ogg'"
 }
