@@ -201,12 +201,10 @@ export class Turn_Timer {
 	}
 
 	static async play_sound(sound, users) {
-		if (Turn_Timer.sound[sound] !== null && users.length > 0) {
-			Object.entries(Turn_Timer.sound).forEach(([, sound]) => sound.stop());
-			if (users.includes(game.user.id)) {
-				if (!Turn_Timer.sound[sound].loaded) await Turn_Timer.sound[sound].load();
-				Turn_Timer.sound[sound].play({ volume: game.settings.get('core', 'globalInterfaceVolume') });
-			}
+		if (Turn_Timer.sound[sound] !== null && users.includes(game.user.id)) {
+			Object.entries(Turn_Timer.sound).forEach(([, sound]) => sound?.stop());
+			if (!Turn_Timer.sound[sound].loaded) await Turn_Timer.sound[sound].load();
+			Turn_Timer.sound[sound].play({ volume: game.settings.get('core', 'globalInterfaceVolume') });
 		}
 	}
 
