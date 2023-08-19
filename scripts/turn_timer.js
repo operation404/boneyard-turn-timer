@@ -40,16 +40,12 @@ export class Turn_Timer {
 	*/
 
 	static _on_received(payload) {
-		switch (payload.type) {
-			case 'attach':
-				Turn_Timer._inject_next_update(payload);
-				break;
-			case 'active':
-				Turn_Timer._toggle_active(payload);
-				break;
-			default:
-				throw new Error('socket unknown type');
-		}
+		const handlers = {
+			attach: Turn_Timer._inject_next_update,
+			active: Turn_Timer._toggle_active,
+		};
+		if (handlers[payload.type] === undefined) throw new Error('socket unknown type');
+		handlers[payload.type](payload);
 	}
 
 	static _inject_next_update(payload) {
@@ -59,36 +55,27 @@ export class Turn_Timer {
 		if (combat?.isActive) {
 			Hooks.once('updateCombat', (combat, change, options, userID) => {
 				function get_owners(actor) {
-					let owners;
 					const ownership = actor?.ownership ?? {};
-					if (ownership.default !== undefined && ownership.default === 3) {
-						// all players own the actor
-						owners = game.users.contents.filter((user) => !user.isGM).map((user) => user.id);
-					} else {
-						// only some players own the actor
-						owners = [];
-						for (let userID in ownership) {
-							if (ownership[userID] === 3 && !game.users.get(userID).isGM) owners.push(userID);
-						}
-					}
-					return owners;
+					return ownership.default === 3
+						? // If default is set to 3 (ownership), get all non-GM users
+						  game.users.contents.filter((user) => !user.isGM).map((user) => user.id)
+						: // Otherwise, filter out all users that are GMs or don't have ownership permission
+						  Object.keys(ownership).filter(
+								(id) => game.users.get(id)?.isGM === false && ownership[id] === 3
+						  );
 				}
 
 				const current_owners = get_owners(game.actors.get(combat.combatant?.actorId));
-				const next_up_owners = get_owners(game.actors.get(combat.nextCombatant?.actorId));
 
 				// Don't notify players who act next round if they're already acting this round
-				current_owners.forEach((userID) => {
-					const idx = next_up_owners.indexOf(userID);
-					if (idx !== -1) next_up_owners.splice(idx, 1);
-				});
+				const next_up_owners = get_owners(game.actors.get(combat.nextCombatant?.actorId)).filter(
+					(userID) => !current_owners.includes(userID)
+				);
 				Turn_Timer.play_sound('next_up', next_up_owners);
-				if (Turn_Timer.next_up_alert) Turn_Timer.send_alert(next_up_owners);
+				Turn_Timer.send_alert(next_up_owners);
 
 				// if 0, gm owns token, don't make timer
-				if (current_owners.length > 0) {
-					Turn_Timer.timer = new Turn_Timer(current_owners, combat);
-				}
+				if (current_owners.length > 0) Turn_Timer.timer = new Turn_Timer(current_owners, combat);
 			});
 		}
 	}
@@ -98,21 +85,13 @@ export class Turn_Timer {
 		Turn_Timer.toggle_timer_hooks();
 		Turn_Timer.timer?.remove();
 
-		// update toggle buttons still in DOM, remove rest
-		for (let i = 0; i < Turn_Timer.toggle_buttons.length; i++) {
-			if (document.body.contains(Turn_Timer.toggle_buttons[i])) {
-				if (Turn_Timer.active) {
-					Turn_Timer.toggle_buttons[i].style['text-shadow'] = '0 0 8px blue';
-					Turn_Timer.toggle_buttons[i].dataset.tooltip = 'Toggle turn timers off';
-				} else {
-					Turn_Timer.toggle_buttons[i].style['text-shadow'] = null;
-					Turn_Timer.toggle_buttons[i].dataset.tooltip = 'Toggle turn timers on';
-				}
-			} else {
-				Turn_Timer.toggle_buttons[i] = null;
+		// Remove toggle buttons not in DOM, update the ones that still are
+		(Turn_Timer.toggle_buttons = Turn_Timer.toggle_buttons.filter((b) => document.body.contains(b))).forEach(
+			(b) => {
+				b.style['text-shadow'] = Turn_Timer.active ? '0 0 8px blue' : null;
+				b.dataset.tooltip = `Toggle turn timers ${Turn_Timer.active ? 'off' : 'on'}`;
 			}
-		}
-		Turn_Timer.toggle_buttons = Turn_Timer.toggle_buttons.filter((t) => t !== null);
+		);
 	}
 
 	// ------------------------------------------------------------------------
@@ -121,7 +100,6 @@ export class Turn_Timer {
 	static async init() {
 		await Turn_Timer.prepare_init_data();
 		Turn_Timer.prepare_hooks();
-		window.Turn_Timer = Turn_Timer;
 		console.log(`====== Boneyard ======\n - Turn timer initialized`);
 	}
 
@@ -175,32 +153,25 @@ export class Turn_Timer {
 	}
 
 	static toggle_timer_hooks() {
-		if (Turn_Timer.active) {
-			Hooks.on('combatStart', Turn_Timer.attach_timer);
-			Hooks.on('combatTurn', Turn_Timer.attach_timer);
-			Hooks.on('combatRound', Turn_Timer.attach_timer);
-		} else {
-			Hooks.off('combatStart', Turn_Timer.attach_timer);
-			Hooks.off('combatTurn', Turn_Timer.attach_timer);
-			Hooks.off('combatRound', Turn_Timer.attach_timer);
-		}
+		const hook_fn = (Turn_Timer.active ? Hooks.on : Hooks.off).bind(Hooks);
+		hook_fn('combatStart', Turn_Timer.attach_timer);
+		hook_fn('combatTurn', Turn_Timer.attach_timer);
+		hook_fn('combatRound', Turn_Timer.attach_timer);
 	}
 
 	// format: "example name 1" 30, "example name 2" 45
 	static parse_custom_durations(str) {
-		const custom_durations = {};
+		Turn_Timer.custom_durations = {};
 		str.split(',').forEach((token) => {
 			let [, name, time] = token.split(`"`);
-			if (name !== undefined && time !== undefined) {
-				name = name.trim();
-				const user = game.users.find((user) => user.name === name);
-				time = parseInt(time.trim());
-				if (user !== undefined && !isNaN(time))
-					custom_durations[user.id] =
-						time < Turn_Timer.min_turn_duration ? Turn_Timer.min_turn_duration : time;
+			if (
+				(name = name?.trim()) !== undefined &&
+				(name = game.users.find((u) => u.name === name)?.id) !== undefined &&
+				!isNaN((time = parseInt(time)))
+			) {
+				Turn_Timer.custom_durations[name] = Math.max(time, Turn_Timer.min_turn_duration);
 			}
 		});
-		Turn_Timer.custom_durations = custom_durations;
 	}
 
 	static attach_timer(combat, updateData, updateOptions) {
@@ -229,15 +200,17 @@ export class Turn_Timer {
 	}
 
 	static async play_sound(sound, users) {
-		if (Turn_Timer.sound[sound] === null || users.length === 0) return;
-		if (users.includes(game.user.id)) {
-			if (!Turn_Timer.sound[sound].loaded) await Turn_Timer.sound[sound].load();
-			Turn_Timer.sound[sound].play({ volume: game.settings.get('core', 'globalInterfaceVolume') });
+		if (Turn_Timer.sound[sound] !== null && users.length > 0) {
+			Object.entries(Turn_Timer.sound).forEach(([, sound]) => sound.stop());
+			if (users.includes(game.user.id)) {
+				if (!Turn_Timer.sound[sound].loaded) await Turn_Timer.sound[sound].load();
+				Turn_Timer.sound[sound].play({ volume: game.settings.get('core', 'globalInterfaceVolume') });
+			}
 		}
 	}
 
 	static send_alert(users) {
-		if (users.includes(game.user.id)) {
+		if (Turn_Timer.next_up_alert && users.includes(game.user.id)) {
 			ChatMessage.create({
 				user: game.user.id,
 				content: 'Your turn is up next!',
@@ -255,14 +228,14 @@ export class Turn_Timer {
 		this.calculate_lifespan();
 		this.warning_not_triggered = true;
 		this.progress = 0;
-		this.timers = [];
+		this.bars = [];
 
 		this.hookID = Hooks.on('renderCombatTracker', (combatTracker, html, data) => {
 			if (this.combat.id === combatTracker.viewed?.id) {
 				const new_node = Turn_Timer.element.cloneNode(true);
-				html[0].querySelector(`nav#combat-controls`).insertAdjacentElement('beforebegin', new_node);
 				this.set_element_style(new_node);
-				this.timers.push(new_node);
+				html[0].querySelector(`nav#combat-controls`).insertAdjacentElement('beforebegin', new_node);
+				this.bars.push(new_node);
 			}
 		});
 
@@ -271,59 +244,36 @@ export class Turn_Timer {
 	}
 
 	calculate_lifespan() {
-		let custom_durations_empty = true;
-		for (let i in Turn_Timer.custom_durations) {
-			custom_durations_empty = false;
-			break;
-		}
-
-		if (!custom_durations_empty) {
-			let time = 0;
-			this.owners.forEach((userID) => {
-				let t = Turn_Timer.custom_durations[userID];
-				if (t) {
-					if (t > time) time = t;
-				} else {
-					if (Turn_Timer.default_duration > time) time = Turn_Timer.default_duration;
-				}
-			});
-			if (time === 0) time = Turn_Timer.default_duration;
-			this.lifespan = time * 1000;
-		} else {
-			this.lifespan = Turn_Timer.default_duration * 1000;
-		}
+		this.lifespan =
+			this.owners.reduce((time, userID) => {
+				return Math.max(time, Turn_Timer.custom_durations[userID] ?? Turn_Timer.default_duration);
+			}, 0) * 1000;
 	}
 
 	set_element_style(timer) {
-		const text_time = `${Math.floor((this.lifespan - this.progress) / 1000)}s`;
-		const style_width = `${Math.min(this.progress / this.lifespan, 1) * 100}%`;
-		const style_warning_glow = this.warning_not_triggered ? 'none' : 'by-pulse-glow';
-		timer.querySelector('span.by-timer-text').textContent = text_time;
-		timer.querySelector('div.by-timer-bar').style['width'] = style_width;
-		timer.querySelector('div.by-bar-warning').style['animation-name'] = style_warning_glow;
+		timer.querySelector('span.by-timer-text').textContent = `${Math.floor(
+			(this.lifespan - this.progress) / 1000
+		)}s`;
+		timer.querySelector('div.by-timer-bar').style['width'] = `${Math.min(this.progress / this.lifespan, 1) * 100}%`;
+		timer.querySelector('div.by-bar-warning').style['animation-name'] = this.warning_not_triggered
+			? 'none'
+			: 'by-pulse-glow';
 	}
 
 	update_timer_bars() {
 		this.progress += Turn_Timer.interval;
 
 		if (
-			Turn_Timer.warning_threshold >= 0 &&
 			this.warning_not_triggered &&
+			Turn_Timer.warning_threshold >= 0 &&
 			(this.lifespan - this.progress) / this.lifespan <= Turn_Timer.warning_threshold
 		) {
 			this.warning_not_triggered = false;
 			Turn_Timer.play_sound('warning', this.owners);
 		}
 
-		// Update timer bars still in DOM, remove rest
-		for (let i = 0; i < this.timers.length; i++) {
-			if (document.body.contains(this.timers[i])) {
-				this.set_element_style(this.timers[i]);
-			} else {
-				this.timers[i] = null;
-			}
-		}
-		this.timers = this.timers.filter((t) => t !== null);
+		// Remove timers not in DOM, update the ones that still are
+		(this.bars = this.bars.filter((t) => document.body.contains(t))).forEach((t) => this.set_element_style(t));
 
 		// Timer is finished, stop updating
 		if (this.progress >= this.lifespan) {
@@ -339,7 +289,7 @@ export class Turn_Timer {
 	remove() {
 		clearInterval(this.intervalID);
 		Hooks.off('renderCombatTracker', this.hookID);
-		this.timers.forEach((t) => t.remove());
+		this.bars.forEach((t) => t.remove());
 		Turn_Timer.timer = null;
 	}
 }

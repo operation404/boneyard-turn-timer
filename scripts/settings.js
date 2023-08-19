@@ -158,5 +158,4 @@ export function prepare_settings() {
 			Turn_Timer.set_sound('next_up', value);
 		},
 	});
-
 }
