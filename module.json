@@ -1,5 +1,6 @@
 {
   "name": "boneyard-turn-timer",
+  "id": "boneyard-turn-timer",
   "title": "Boneyard Turn Timer",
   "description": "A simple timer to limit turn length.",
   "version": "#{VERSION}#",
@@ -10,6 +11,9 @@
     "verified": 9.280,
     "maximum": 9
   },
+  "minimumCoreVersion": "9",
+  "compatibleCoreVersion": "9.280",
+  "maximumCoreVersion": "9",
   "authors": [
     {
       "name": "Lich",
