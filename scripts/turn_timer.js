@@ -4,6 +4,7 @@ export class Turn_Timer {
 	static interval = 25; // milliseconds
 	static min_turn_duration = 1; // seconds
 
+	static fvtt_v10_above;
 	static active;
 	static toggle_buttons = [];
 	static default_duration;
@@ -21,6 +22,22 @@ export class Turn_Timer {
 		turn_start: null,
 		next_up: null,
 	};
+
+	/*
+		TODO
+
+		Still problems with the v9 version. When multiple users are signed in, I'm getting the issue
+		where timer bars are disappearing instantly again.
+
+		I'm also getting two alert chat messages warning me that my turn is up next.
+
+		Potentially still some issue with multiple timer instances clashing? Not sure
+		how adding a second client into the mix is causing this right now.
+
+	
+	*/
+
+
 
 	// ------------------------------------------------------------------------
 	// Socket methods
@@ -42,6 +59,7 @@ export class Turn_Timer {
 	static _on_received(payload) {
 		const handlers = {
 			attach: Turn_Timer._inject_next_update,
+			attach_v9: Turn_Timer._inject_next_update_v9,
 			active: Turn_Timer._toggle_active,
 		};
 		if (handlers[payload.type] === undefined) throw new Error('socket unknown type');
@@ -77,6 +95,38 @@ export class Turn_Timer {
 				// if 0, gm owns token, don't make timer
 				if (current_owners.length > 0) Turn_Timer.timer = new Turn_Timer(current_owners, combat);
 			});
+		}
+	}
+
+	static _inject_next_update_v9(payload) {
+		const combat = game.combats.get(payload.combatID);
+		if (
+			combat?.isActive &&
+			combat.current.combatantId !== null &&
+			combat.current.combatantId !== combat.previous.combatantId
+		) {
+			Turn_Timer.timer?.remove();
+			function get_owners(actor) {
+				const ownership = actor?.data?.permission ?? {};
+				return ownership.default === 3
+					? // If default is set to 3 (ownership), get all non-GM users
+					  game.users.contents.filter((user) => !user.isGM).map((user) => user.id)
+					: // Otherwise, filter out all users that are GMs or don't have ownership permission
+					  Object.keys(ownership).filter((id) => game.users.get(id)?.isGM === false && ownership[id] === 3);
+			}
+
+			const current_owners = get_owners(game.actors.get(combat.combatant?.data?.actorId));
+
+			const next_combatant = combat.turns[(combat.turn + 1) % combat.turns.length];
+			// Don't notify players who act next round if they're already acting this round
+			const next_up_owners = get_owners(game.actors.get(next_combatant?.data?.actorId)).filter(
+				(userID) => !current_owners.includes(userID)
+			);
+			Turn_Timer.play_sound('next_up', next_up_owners);
+			Turn_Timer.send_alert(next_up_owners);
+
+			// if 0, gm owns token, don't make timer
+			if (current_owners.length > 0) Turn_Timer.timer = new Turn_Timer(current_owners, combat);
 		}
 	}
 
@@ -136,6 +186,10 @@ export class Turn_Timer {
 
 	static prepare_hooks() {
 		Hooks.once('ready', () => {
+			Turn_Timer.fvtt_v10_above = parseFloat(game.version) >= 10;
+			Turn_Timer.toggle_timer_hooks = Turn_Timer.fvtt_v10_above
+				? Turn_Timer._toggle_timer_hooks
+				: Turn_Timer._toggle_timer_hooks_v9;
 			Turn_Timer.prepare_ready_data();
 			if (game.user.isGM) Hooks.on('renderCombatTracker', Turn_Timer.attach_toggle_button);
 			if (Turn_Timer.active) Turn_Timer.toggle_timer_hooks();
@@ -150,13 +204,6 @@ export class Turn_Timer {
 		Turn_Timer.set_sound('warning', game.settings.get(CONST.MODULE, CONST.SETTING_WARNING_SOUND));
 		Turn_Timer.set_sound('turn_start', game.settings.get(CONST.MODULE, CONST.SETTING_TURN_START_SOUND));
 		Turn_Timer.set_sound('next_up', game.settings.get(CONST.MODULE, CONST.SETTING_NEXT_UP_SOUND));
-	}
-
-	static toggle_timer_hooks() {
-		const hook_fn = (Turn_Timer.active ? Hooks.on : Hooks.off).bind(Hooks);
-		hook_fn('combatStart', Turn_Timer.attach_timer);
-		hook_fn('combatTurn', Turn_Timer.attach_timer);
-		hook_fn('combatRound', Turn_Timer.attach_timer);
 	}
 
 	// format: "example name 1" 30, "example name 2" 45
@@ -174,16 +221,37 @@ export class Turn_Timer {
 		});
 	}
 
+	static toggle_timer_hooks;
+
+	static _toggle_timer_hooks() {
+		const hook_fn = (Turn_Timer.active ? Hooks.on : Hooks.off).bind(Hooks);
+		hook_fn('combatStart', Turn_Timer.attach_timer);
+		hook_fn('combatTurn', Turn_Timer.attach_timer);
+		hook_fn('combatRound', Turn_Timer.attach_timer);
+	}
+
+	static _toggle_timer_hooks_v9() {
+		const hook_fn = (Turn_Timer.active ? Hooks.on : Hooks.off).bind(Hooks);
+		hook_fn('updateCombat', Turn_Timer.attach_timer_v9);
+	}
+
 	static attach_timer(combat, updateData, updateOptions) {
 		const payload = { type: 'attach', combatID: combat.id };
 		game.socket.emit(CONST.SOCKET, payload);
 		Turn_Timer._inject_next_update(payload);
 	}
 
+	static attach_timer_v9(combat, change, options, userID) {
+		const payload = { type: 'attach_v9', combatID: combat.id };
+		game.socket.emit(CONST.SOCKET, payload);
+		Turn_Timer._inject_next_update_v9(payload);
+	}
+
 	static attach_toggle_button(combatTracker, html, data) {
 		const new_node = Turn_Timer.toggle_button_element.cloneNode(true);
-		html[0].querySelector(`a[data-control="rollNPC"]`).insertAdjacentElement('afterend', new_node);
-		html[0].querySelector(`h3.encounter-title`).style['margin-left'] = 0;
+		const round_counter_label = html[0].querySelector(`h3.encounter-title`);
+		round_counter_label.insertAdjacentElement('beforebegin', new_node);
+		round_counter_label.style['margin-left'] = 0;
 		new_node.addEventListener('click', Turn_Timer.toggle_button_handler);
 		if (Turn_Timer.active) {
 			new_node.style['text-shadow'] = '0 0 8px blue';
@@ -230,14 +298,25 @@ export class Turn_Timer {
 		this.progress = 0;
 		this.bars = [];
 
-		this.hookID = Hooks.on('renderCombatTracker', (combatTracker, html, data) => {
-			if (this.combat.id === combatTracker.viewed?.id) {
-				const new_node = Turn_Timer.element.cloneNode(true);
-				this.set_element_style(new_node);
-				html[0].querySelector(`nav#combat-controls`).insertAdjacentElement('beforebegin', new_node);
-				this.bars.push(new_node);
-			}
-		});
+		if (Turn_Timer.fvtt_v10_above) {
+			this.hookID = Hooks.on('renderCombatTracker', (combatTracker, html, data) => {
+				if (this.combat.id === combatTracker.viewed?.id) {
+					const new_node = Turn_Timer.element.cloneNode(true);
+					this.set_element_style(new_node);
+					html[0].querySelector(`nav#combat-controls`).insertAdjacentElement('beforebegin', new_node);
+					this.bars.push(new_node);
+				}
+			});
+		} else {
+			this.hookID = Hooks.on('renderSidebarTab', (app, html, data) => {
+				if (app.constructor.name === 'CombatTracker' && this.combat.id === app.viewed?.id) {
+					const new_node = Turn_Timer.element.cloneNode(true);
+					this.set_element_style(new_node);
+					html[0].querySelector(`nav#combat-controls`).insertAdjacentElement('beforebegin', new_node);
+					this.bars.push(new_node);
+				}
+			});
+		}
 
 		Turn_Timer.play_sound('turn_start', this.owners);
 		this.intervalID = setInterval(this.update_timer_bars.bind(this), Turn_Timer.interval);
@@ -288,7 +367,7 @@ export class Turn_Timer {
 
 	remove() {
 		clearInterval(this.intervalID);
-		Hooks.off('renderCombatTracker', this.hookID);
+		Hooks.off(Turn_Timer.fvtt_v10_above ? 'renderCombatTracker' : 'renderSidebarTab', this.hookID);
 		this.bars.forEach((t) => t.remove());
 		Turn_Timer.timer = null;
 	}

@@ -1,4 +1,5 @@
 {
+  "name": "boneyard-turn-timer",
   "id": "boneyard-turn-timer",
   "title": "Boneyard Turn Timer",
   "description": "A simple timer to limit turn length.",
@@ -6,7 +7,7 @@
   "library": "false",
   "manifestPlusVersion": "1.2.0",
   "compatibility": {
-    "minimum": 11,
+    "minimum": 9,
     "verified": 11.301,
     "maximum": 11
   },
