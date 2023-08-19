@@ -268,7 +268,15 @@ export class Turn_Timer {
 		if (this.progress >= this.lifespan) {
 			if (Turn_Timer.force_end_turn) {
 				this.remove();
-				this.combat.nextTurn();
+				if (
+					// only let the client belonging to the online GM with highest id end the turn
+					game.user.id ===
+					game.users.reduce((a, b) => {
+						return b.active && b.isGM && b.id > a ? b.id : a;
+					}, '')
+				) {
+					this.combat.nextTurn();
+				}
 			} else {
 				clearInterval(this.intervalID);
 			}
