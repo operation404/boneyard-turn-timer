@@ -4,7 +4,6 @@ export class Turn_Timer {
 	static interval = 25; // milliseconds
 	static min_turn_duration = 1; // seconds
 
-	static fvtt_v10_above;
 	static active;
 	static toggle_buttons = [];
 	static default_duration;
@@ -22,20 +21,6 @@ export class Turn_Timer {
 		turn_start: null,
 		next_up: null,
 	};
-
-	/*
-		TODO
-
-		Still problems with the v9 version. When multiple users are signed in, I'm getting the issue
-		where timer bars are disappearing instantly again.
-
-		I'm also getting two alert chat messages warning me that my turn is up next.
-
-		Potentially still some issue with multiple timer instances clashing? Not sure
-		how adding a second client into the mix is causing this right now.
-
-	
-	*/
 
 	// ------------------------------------------------------------------------
 	// Socket methods
@@ -56,43 +41,10 @@ export class Turn_Timer {
 
 	static _on_received(payload) {
 		const handlers = {
-			attach: Turn_Timer._inject_next_update,
 			active: Turn_Timer._toggle_active,
 		};
 		if (handlers[payload.type] === undefined) throw new Error('socket unknown type');
 		handlers[payload.type](payload);
-	}
-
-	static _inject_next_update(payload) {
-		const combat = game.combats.get(payload.combatID);
-		if (
-			combat?.isActive &&
-			combat.current.combatantId !== null &&
-			combat.current.combatantId !== combat.previous.combatantId
-		) {
-			Turn_Timer.timer?.remove();
-			function get_owners(actor) {
-				const ownership = actor?.data?.permission ?? {};
-				return ownership.default === 3
-					? // If default is set to 3 (ownership), get all non-GM users
-					  game.users.contents.filter((user) => !user.isGM).map((user) => user.id)
-					: // Otherwise, filter out all users that are GMs or don't have ownership permission
-					  Object.keys(ownership).filter((id) => game.users.get(id)?.isGM === false && ownership[id] === 3);
-			}
-
-			const current_owners = get_owners(game.actors.get(combat.combatant?.data?.actorId));
-
-			const next_combatant = combat.turns[(combat.turn + 1) % combat.turns.length];
-			// Don't notify players who act next round if they're already acting this round
-			const next_up_owners = get_owners(game.actors.get(next_combatant?.data?.actorId)).filter(
-				(userID) => !current_owners.includes(userID)
-			);
-			Turn_Timer.play_sound('next_up', next_up_owners);
-			Turn_Timer.send_alert(next_up_owners);
-
-			// if 0, gm owns token, don't make timer
-			if (current_owners.length > 0) Turn_Timer.timer = new Turn_Timer(current_owners, combat);
-		}
 	}
 
 	static _toggle_active(payload) {
@@ -188,9 +140,34 @@ export class Turn_Timer {
 	}
 
 	static attach_timer(combat, change, options, userID) {
-		const payload = { type: 'attach', combatID: combat.id };
-		game.socket.emit(CONST.SOCKET, payload);
-		Turn_Timer._inject_next_update(payload);
+		if (
+			combat?.isActive &&
+			combat.current.combatantId !== null &&
+			combat.current.combatantId !== combat.previous.combatantId
+		) {
+			Turn_Timer.timer?.remove();
+			function get_owners(actor) {
+				const ownership = actor?.data?.permission ?? {};
+				return ownership.default === 3
+					? // If default is set to 3 (ownership), get all non-GM users
+					  game.users.contents.filter((user) => !user.isGM).map((user) => user.id)
+					: // Otherwise, filter out all users that are GMs or don't have ownership permission
+					  Object.keys(ownership).filter((id) => game.users.get(id)?.isGM === false && ownership[id] === 3);
+			}
+
+			const current_owners = get_owners(game.actors.get(combat.combatant?.data?.actorId));
+
+			const next_combatant = combat.turns[(combat.turn + 1) % combat.turns.length];
+			// Don't notify players who act next round if they're already acting this round
+			const next_up_owners = get_owners(game.actors.get(next_combatant?.data?.actorId)).filter(
+				(userID) => !current_owners.includes(userID)
+			);
+			Turn_Timer.play_sound('next_up', next_up_owners);
+			Turn_Timer.send_alert(next_up_owners);
+
+			// if 0, gm owns token, don't make timer
+			if (current_owners.length > 0) Turn_Timer.timer = new Turn_Timer(current_owners, combat);
+		}
 	}
 
 	static attach_toggle_button(combatTracker, html, data) {
@@ -207,16 +184,16 @@ export class Turn_Timer {
 	}
 
 	static toggle_button_handler(e) {
-		const payload = { type: 'active' };
+		const payload = { sender: game.user.id, type: 'active' };
 		game.socket.emit(CONST.SOCKET, payload);
 		Turn_Timer._toggle_active(payload);
 		game.settings.set(CONST.MODULE, CONST.SETTING_ACTIVE, Turn_Timer.active);
 	}
 
 	static async play_sound(sound, users) {
-		if (Turn_Timer.sound[sound] !== null && users.length > 0) {
-			Object.entries(Turn_Timer.sound).forEach(([, sound]) => sound.stop());
-			if (users.includes(game.user.id)) {
+		if (users.includes(game.user.id)) {
+			Object.entries(Turn_Timer.sound).forEach(([, sound]) => sound?.stop());
+			if (Turn_Timer.sound[sound] !== null) {
 				if (!Turn_Timer.sound[sound].loaded) await Turn_Timer.sound[sound].load();
 				Turn_Timer.sound[sound].play({ volume: game.settings.get('core', 'globalInterfaceVolume') });
 			}
