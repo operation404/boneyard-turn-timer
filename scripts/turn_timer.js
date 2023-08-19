@@ -182,8 +182,9 @@ export class Turn_Timer {
 
 	static attach_toggle_button(combatTracker, html, data) {
 		const new_node = Turn_Timer.toggle_button_element.cloneNode(true);
-		html[0].querySelector(`a[data-control="rollNPC"]`).insertAdjacentElement('afterend', new_node);
-		html[0].querySelector(`h3.encounter-title`).style['margin-left'] = 0;
+		const round_counter_label = html[0].querySelector(`h3.encounter-title`);
+		round_counter_label.insertAdjacentElement('beforebegin', new_node);
+		round_counter_label.style['margin-left'] = 0;
 		new_node.addEventListener('click', Turn_Timer.toggle_button_handler);
 		if (Turn_Timer.active) {
 			new_node.style['text-shadow'] = '0 0 8px blue';
