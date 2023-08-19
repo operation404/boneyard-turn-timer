@@ -1,49 +1,42 @@
 {
-  "id": "boneyard-turn-timer",
-  "title": "Boneyard Turn Timer",
-  "description": "A simple timer to limit turn length.",
-  "version": "#{VERSION}#",
-  "library": "false",
-  "manifestPlusVersion": "1.2.0",
-  "compatibility": {
-    "minimum": 10,
-    "verified": 11.301,
-    "maximum": 11
-  },
-  "name": "boneyard-turn-timer",
-  "minimumCoreVersion": "10",
-  "authors": [
-    {
-      "name": "Lich",
-      "url": "https://github.com/operation404",
-      "discord": "operation404#8123"
-    }
-  ],
-  "relationships": {
-    "systems": [],
-    "requires": []
-  },
-  "esmodules": [
-    "setup.js"
-  ],
-  "templates": [
-    "templates/turn-timer.hbs"
-  ],
-  "styles": [
-    "styles/module.css",
-    "styles/module.css.map"
-  ],
-  "languages": [
-    {
-      "lang": "en",
-      "name": "English",
-      "path": "languages/en.json"
-    }
-  ],
-  "socket": true,
-  "url": "#{URL}#",
-  "manifest": "#{MANIFEST}#",
-  "download": "#{DOWNLOAD}#",
-  "license": "LICENSE",
-  "readme": "README.md"
+    "id": "boneyard-turn-timer",
+    "title": "Boneyard Turn Timer",
+    "description": "A simple timer to limit turn length.",
+    "version": "#{VERSION}#",
+    "library": "false",
+    "manifestPlusVersion": "1.2.0",
+    "compatibility": {
+        "minimum": 10,
+        "verified": 11.301,
+        "maximum": 11
+    },
+    "name": "boneyard-turn-timer",
+    "minimumCoreVersion": "10",
+    "authors": [
+        {
+            "name": "Lich",
+            "url": "https://github.com/operation404",
+            "discord": "operation404#8123"
+        }
+    ],
+    "relationships": {
+        "systems": [],
+        "requires": []
+    },
+    "esmodules": ["setup.js"],
+    "templates": ["templates/turn-timer.hbs"],
+    "styles": ["styles/module.css", "styles/module.css.map"],
+    "languages": [
+        {
+            "lang": "en",
+            "name": "English",
+            "path": "languages/en.json"
+        }
+    ],
+    "socket": true,
+    "url": "#{URL}#",
+    "manifest": "#{MANIFEST}#",
+    "download": "#{DOWNLOAD}#",
+    "license": "LICENSE",
+    "readme": "README.md"
 }
