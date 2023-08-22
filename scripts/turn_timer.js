@@ -260,35 +260,37 @@ export class Turn_Timer {
     }
 
     update_timer_bars() {
-        this.progress += Turn_Timer.interval;
+        if (!game.paused) {
+            this.progress += Turn_Timer.interval;
 
-        if (
-            this.warning_not_triggered &&
-            Turn_Timer.warning_threshold >= 0 &&
-            (this.lifespan - this.progress) / this.lifespan <= Turn_Timer.warning_threshold
-        ) {
-            this.warning_not_triggered = false;
-            Turn_Timer.play_sound('warning', this.owners);
-        }
+            if (
+                this.warning_not_triggered &&
+                Turn_Timer.warning_threshold >= 0 &&
+                (this.lifespan - this.progress) / this.lifespan <= Turn_Timer.warning_threshold
+            ) {
+                this.warning_not_triggered = false;
+                Turn_Timer.play_sound('warning', this.owners);
+            }
 
-        // Remove timers not in DOM, update the ones that still are
-        (this.bars = this.bars.filter((t) => document.body.contains(t))).forEach((t) => this.set_element_style(t));
+            // Remove timers not in DOM, update the ones that still are
+            (this.bars = this.bars.filter((t) => document.body.contains(t))).forEach((t) => this.set_element_style(t));
 
-        // Timer is finished, stop updating
-        if (this.progress >= this.lifespan) {
-            if (Turn_Timer.force_end_turn) {
-                this.remove();
-                if (
-                    // only let the client belonging to the online GM with highest id end the turn
-                    game.user.id ===
-                    game.users.reduce((a, b) => {
-                        return b.active && b.isGM && b.id > a ? b.id : a;
-                    }, '')
-                ) {
-                    this.combat.nextTurn();
+            // Timer is finished, stop updating
+            if (this.progress >= this.lifespan) {
+                if (Turn_Timer.force_end_turn) {
+                    this.remove();
+                    if (
+                        // only let the client belonging to the online GM with highest id end the turn
+                        game.user.id ===
+                        game.users.reduce((a, b) => {
+                            return b.active && b.isGM && b.id > a ? b.id : a;
+                        }, '')
+                    ) {
+                        this.combat.nextTurn();
+                    }
+                } else {
+                    clearInterval(this.intervalID);
                 }
-            } else {
-                clearInterval(this.intervalID);
             }
         }
     }
