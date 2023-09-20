@@ -7,8 +7,8 @@
     "manifestPlusVersion": "1.2.0",
     "compatibility": {
         "minimum": 10,
-        "verified": 11.301,
-        "maximum": 11
+        "verified": 11.308,
+        "_only_if_breaking__maximum": 11
     },
     "name": "boneyard-turn-timer",
     "minimumCoreVersion": "10",
