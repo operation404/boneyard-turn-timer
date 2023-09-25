@@ -38,16 +38,11 @@ export class PopoutTimer extends Application {
     }
 
     static setActive(active) {
-        if (active === PopoutTimer.active) return;
-
-        if (active) {
-            timerBar = TurnTimer.instance?.newTimerBar();
-            if (timerBar) PopoutTimer.instance = new PopoutTimer(timerBar);
-        } else {
+        if (active !== PopoutTimer.active) {
+            PopoutTimer.active = active;
             PopoutTimer.instance?.remove();
+            if (PopoutTimer.active) PopoutTimer.instance = new PopoutTimer().render(true);
         }
-
-        PopoutTimer.active = active;
     }
 
     static get defaultOptions() {
@@ -58,16 +53,45 @@ export class PopoutTimer extends Application {
         });
     }
 
-    constructor(timerBar, options = {}) {}
+    constructor(options = {}) {
+        super(options);
 
-    getData() {}
+        this.hookIds = ['combatTurn', 'combatRound'].map((hook) => {
+            const id = Hooks.on(hook, () => this.updateBar.bind(this));
+            return { hook: hook, id: id };
+        });
+    }
+
+    getData() {
+        return {
+            appId: this.appId,
+        };
+    }
 
     _injectHTML(html) {
         $('body').append(html);
         this._element = html;
     }
 
+    async _render(force = false, options = {}) {
+        await super._render(force, options);
+        this.updateBar();
+        this._element[0].style.left = `${100}px`;
+        this._element[0].style.top = `${100}px`;
+    }
+
     activateListeners(html) {
         super.activateListeners(html);
+    }
+
+    updateBar() {
+        const bar = TurnTimer.instance?.newTimerBar();
+        if (bar) this._element[0].querySelector('#by-timer-bar-container').insertAdjacentElement('afterbegin', bar);
+    }
+
+    remove() {
+        this.hookIds.forEach((h) => Hooks.off(h.hook, h.id));
+        this._element[0].remove();
+        PopoutTimer.instance = null;
     }
 }

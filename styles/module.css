@@ -46,4 +46,10 @@ span.by-timer-text {
   text-shadow: 0 0 2px black;
 }
 
+div#by-turn-timer-popout {
+  height: 1.3em;
+  width: 100px;
+  background-color: orange;
+}
+
 /*# sourceMappingURL=module.css.map */

@@ -47,3 +47,9 @@ span.by-timer-text {
     -webkit-text-stroke: 1px black;
     text-shadow: 0 0 2px black;
 }
+
+div#by-turn-timer-popout {
+    height: 1.3em;
+    width: 100px;
+    background-color: orange;
+}
