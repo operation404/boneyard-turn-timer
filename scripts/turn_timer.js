@@ -104,12 +104,12 @@ export class Turn_Timer {
     }
 
     static async prepare_init_data() {
-        Turn_Timer.active = game.settings.get(CONST.MODULE, CONST.SETTING_ACTIVE);
+        Turn_Timer.active = game.settings.get(CONST.MODULE, CONST.SETTINGS.ACTIVE);
 
-        Turn_Timer.default_duration = game.settings.get(CONST.MODULE, CONST.SETTING_DEFAULT_TURN_DURATION);
-        Turn_Timer.force_end_turn = game.settings.get(CONST.MODULE, CONST.SETTING_FORCE_TURN_CHANGE);
-        Turn_Timer.warning_threshold = game.settings.get(CONST.MODULE, CONST.SETTING_WARNING_THRESHOLD);
-        Turn_Timer.next_up_alert = game.settings.get(CONST.MODULE, CONST.SETTING_NEXT_UP_ALERT);
+        Turn_Timer.default_duration = game.settings.get(CONST.MODULE, CONST.SETTINGS.DEFAULT_TURN_DURATION);
+        Turn_Timer.force_end_turn = game.settings.get(CONST.MODULE, CONST.SETTINGS.FORCE_TURN_CHANGE);
+        Turn_Timer.warning_threshold = game.settings.get(CONST.MODULE, CONST.SETTINGS.WARNING_THRESHOLD);
+        Turn_Timer.next_up_alert = game.settings.get(CONST.MODULE, CONST.SETTINGS.NEXT_UP_ALERT);
 
         await Turn_Timer.generate_base_element();
         const element_template = document.createElement('template');
@@ -118,8 +118,8 @@ export class Turn_Timer {
     }
 
     static async generate_base_element() {
-        Turn_Timer.bar_color = game.settings.get(CONST.MODULE, CONST.SETTING_BAR_COLOR);
-        Turn_Timer.warning_glow_color = game.settings.get(CONST.MODULE, CONST.SETTING_WARNING_COLOR);
+        Turn_Timer.bar_color = game.settings.get(CONST.MODULE, CONST.SETTINGS.BAR_COLOR);
+        Turn_Timer.warning_glow_color = game.settings.get(CONST.MODULE, CONST.SETTINGS.WARNING_COLOR);
         const element_template = document.createElement('template');
         element_template.innerHTML = await renderTemplate(CONST.TIMER_TEMPLATE_PATH, {
             bar_color: Turn_Timer.bar_color,
@@ -146,10 +146,10 @@ export class Turn_Timer {
     // Some data requires the game to have finished initializing before preparing
     // in order to access various Foundry methods/documents
     static prepare_ready_data() {
-        Turn_Timer.parse_custom_durations(game.settings.get(CONST.MODULE, CONST.SETTING_CUSTOM_TURN_DURATIONS));
-        Turn_Timer.set_sound('warning', game.settings.get(CONST.MODULE, CONST.SETTING_WARNING_SOUND));
-        Turn_Timer.set_sound('turn_start', game.settings.get(CONST.MODULE, CONST.SETTING_TURN_START_SOUND));
-        Turn_Timer.set_sound('next_up', game.settings.get(CONST.MODULE, CONST.SETTING_NEXT_UP_SOUND));
+        Turn_Timer.parse_custom_durations(game.settings.get(CONST.MODULE, CONST.SETTINGS.CUSTOM_TURN_DURATIONS));
+        Turn_Timer.set_sound('warning', game.settings.get(CONST.MODULE, CONST.SETTINGS.WARNING_SOUND));
+        Turn_Timer.set_sound('turn_start', game.settings.get(CONST.MODULE, CONST.SETTINGS.TURN_START_SOUND));
+        Turn_Timer.set_sound('next_up', game.settings.get(CONST.MODULE, CONST.SETTINGS.NEXT_UP_SOUND));
     }
 
     static toggle_timer_hooks() {

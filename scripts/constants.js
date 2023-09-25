@@ -19,3 +19,19 @@ export const SETTING_TURN_START_SOUND = 'turn_start_sound';
 
 export const SETTING_NEXT_UP_ALERT = 'next_up_alert';
 export const SETTING_NEXT_UP_SOUND = 'next_up_sound';
+
+const settings = [
+    'ACTIVE',
+    'FORCE_TURN_CHANGE',
+    'DEFAULT_TURN_DURATION',
+    'CUSTOM_TURN_DURATIONS',
+    'BAR_COLOR',
+    'WARNING_THRESHOLD',
+    'WARNING_COLOR',
+    'WARNING_SOUND',
+    'TURN_START_SOUND',
+    'NEXT_UP_ALERT',
+    'NEXT_UP_SOUND',
+    'AUTO_POPOUT',
+];
+export const SETTINGS = Object.freeze(Object.fromEntries(settings.map((v) => [v, v])));
