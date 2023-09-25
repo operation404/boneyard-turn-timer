@@ -114,14 +114,14 @@ export function prepare_settings() {
         requiresReload: false,
         onChange: (value) => {
             if (!hex_test.test(value)) {
-                game.settings.set(CONST.MODULE, CONST.SETTING_WARNING_COLOR, default_warning_glow_color);
+                game.settings.set(CONST.MODULE, CONST.SETTINGS.WARNING_COLOR, default_warning_glow_color);
             }
             Turn_Timer.generate_base_element();
         },
     });
 
-    game.settings.register(CONST.MODULE, CONST.CONST.SETTINGS.WARNING_SOUND, {
-        name: `SETTINGS.NAME.${CONST.CONST.SETTINGS.WARNING_SOUND}`,
+    game.settings.register(CONST.MODULE, CONST.SETTINGS.WARNING_SOUND, {
+        name: `SETTINGS.NAME.${CONST.SETTINGS.WARNING_SOUND}`,
         hint: `SETTINGS.HINT.${CONST.SETTINGS.WARNING_SOUND}`,
         scope: 'world',
         config: true,
@@ -160,6 +160,8 @@ export function prepare_settings() {
     });
 
     game.settings.register(CONST.MODULE, CONST.SETTINGS.AUTO_POPOUT, {
+        name: `SETTINGS.NAME.${CONST.SETTINGS.AUTO_POPOUT}`,
+        hint: `SETTINGS.HINT.${CONST.SETTINGS.AUTO_POPOUT}`,
         scope: 'client',
         config: true,
         type: Boolean,

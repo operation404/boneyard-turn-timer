@@ -1,31 +1,34 @@
 {
-    "SETTINGS.NAME.force_turn_change": "Automatically End Turn",
-    "SETTINGS.HINT.force_turn_change": "Whether or not to forcibly progress to the next turn once a turn's time limit has fully elapsed.\nDefault: True",
+    "SETTINGS.NAME.FORCE_TURN_CHANGE": "Automatically End Turn",
+    "SETTINGS.HINT.FORCE_TURN_CHANGE": "Whether or not to forcibly progress to the next turn once a turn's time limit has fully elapsed.\nDefault: True",
 
-    "SETTINGS.NAME.default_turn_duration": "Default Timer Duration",
-    "SETTINGS.HINT.default_turn_duration": "The default amount of time in seconds a player has to complete their turn.\nMinimum: 1, Default: 60",
+    "SETTINGS.NAME.DEFAULT_TURN_DURATION": "Default Timer Duration",
+    "SETTINGS.HINT.DEFAULT_TURN_DURATION": "The default amount of time in seconds a player has to complete their turn.\nMinimum: 1, Default: 60",
 
-    "SETTINGS.NAME.custom_turn_durations": "Custom Timer Durations",
-    "SETTINGS.HINT.custom_turn_durations": "Different turn lengths can be specified per player through this setting. This setting expects a comma separated list, with each item in the list being in the format of '\"Example Player Name\" X', where the player's name is enclosed in double quotes and is followed by an integer number representing the amount of seconds their turn timer will be set to. The name is case sensitive and is used to find the ID of the player.\nEx: '\"Tom J.\" 50, \"Mia Li\" 25'\nDefault: ''",
+    "SETTINGS.NAME.CUSTOM_TURN_DURATIONS": "Custom Timer Durations",
+    "SETTINGS.HINT.CUSTOM_TURN_DURATIONS": "Different turn lengths can be specified per player through this setting. This setting expects a comma separated list, with each item in the list being in the format of '\"Example Player Name\" X', where the player's name is enclosed in double quotes and is followed by an integer number representing the amount of seconds their turn timer will be set to. The name is case sensitive and is used to find the ID of the player.\nEx: '\"Tom J.\" 50, \"Mia Li\" 25'\nDefault: ''",
 
-    "SETTINGS.NAME.bar_color": "Timer Bar Color",
-    "SETTINGS.HINT.bar_color": "The color of the timer bar. Must be a hex color in the format of '#XXXXXX'.\nDefault: '#D0D000'",
+    "SETTINGS.NAME.BAR_COLOR": "Timer Bar Color",
+    "SETTINGS.HINT.BAR_COLOR": "The color of the timer bar. Must be a hex color in the format of '#XXXXXX'.\nDefault: '#D0D000'",
 
-    "SETTINGS.NAME.warning_threshold": "Warning Threshold",
-    "SETTINGS.HINT.warning_threshold": "What percentage of time left in a turn to give the player a warning their time is almost out. If set to 0.5, the timer bar will start to flash and an optional sound will play when half of their time is elapsed. At 0, the sound plays right as the turn ends. If set to -0.05, no warning will be given.\nDefault: 0.25",
+    "SETTINGS.NAME.WARNING_THRESHOLD": "Warning Threshold",
+    "SETTINGS.HINT.WARNING_THRESHOLD": "What percentage of time left in a turn to give the player a warning their time is almost out. If set to 0.5, the timer bar will start to flash and an optional sound will play when half of their time is elapsed. At 0, the sound plays right as the turn ends. If set to -0.05, no warning will be given.\nDefault: 0.25",
 
-    "SETTINGS.NAME.warning_color": "Warning Glow Color",
-    "SETTINGS.HINT.warning_color": "The color of the flashing glow around the timer when the warning activates. Must be a hex color in the format of '#XXXXXX'.\nDefault: '#FF0000'",
+    "SETTINGS.NAME.WARNING_COLOR": "Warning Glow Color",
+    "SETTINGS.HINT.WARNING_COLOR": "The color of the flashing glow around the timer when the warning activates. Must be a hex color in the format of '#XXXXXX'.\nDefault: '#FF0000'",
 
-    "SETTINGS.NAME.warning_sound": "Warning Sound",
-    "SETTINGS.HINT.warning_sound": "The path to a sound file to be played as a warning that a player's turn time is almost out. A blank input or incorrect path will result in no sound being played.\nDefault: 'modules/boneyard-turn-timer/assets/warning_sound.ogg'",
+    "SETTINGS.NAME.WARNING_SOUND": "Warning Sound",
+    "SETTINGS.HINT.WARNING_SOUND": "The path to a sound file to be played as a warning that a player's turn time is almost out. A blank input or incorrect path will result in no sound being played.\nDefault: 'modules/boneyard-turn-timer/assets/warning_sound.ogg'",
 
-    "SETTINGS.NAME.turn_start_sound": "Turn Start Sound",
-    "SETTINGS.HINT.turn_start_sound": "The path to a sound file to be played at the start of a player's turn in order to alert them their turn has begun. A blank input or incorrect path will result in no sound being played.\nDefault: 'modules/boneyard-turn-timer/assets/turn_start_sound.ogg'",
+    "SETTINGS.NAME.TURN_START_SOUND": "Turn Start Sound",
+    "SETTINGS.HINT.TURN_START_SOUND": "The path to a sound file to be played at the start of a player's turn in order to alert them their turn has begun. A blank input or incorrect path will result in no sound being played.\nDefault: 'modules/boneyard-turn-timer/assets/turn_start_sound.ogg'",
 
-    "SETTINGS.NAME.next_up_alert": "Next Up Chat Alert",
-    "SETTINGS.HINT.next_up_alert": "Whether or not to send a whisper in the chat to a player letting them know their turn is coming up next.\nDefault: True",
+    "SETTINGS.NAME.NEXT_UP_ALERT": "Next Up Chat Alert",
+    "SETTINGS.HINT.NEXT_UP_ALERT": "Whether or not to send a whisper in the chat to a player letting them know their turn is coming up next.\nDefault: True",
 
-    "SETTINGS.NAME.next_up_sound": "Next Up Sound",
-    "SETTINGS.HINT.next_up_sound": "The path to a sound file to be played the turn before a player's turn approaches in order to alert them their turn is coming up next. A blank input or incorrect path will result in no sound being played.\nDefault: 'modules/boneyard-turn-timer/assets/next_up_sound.ogg'"
+    "SETTINGS.NAME.NEXT_UP_SOUND": "Next Up Sound",
+    "SETTINGS.HINT.NEXT_UP_SOUND": "The path to a sound file to be played the turn before a player's turn approaches in order to alert them their turn is coming up next. A blank input or incorrect path will result in no sound being played.\nDefault: 'modules/boneyard-turn-timer/assets/next_up_sound.ogg'",
+
+    "SETTINGS.NAME.AUTO_POPOUT": "Automatically Popout Timer",
+    "SETTINGS.HINT.AUTO_POPOUT": "Whether to automatically make a popout timer panel that can be move around the browser window independent from the core Foundry combat tracker."
 }
