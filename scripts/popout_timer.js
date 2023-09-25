@@ -1,13 +1,40 @@
 import * as CONST from './constants.js';
 
 export class PopoutTimer extends Application {
-    static instance = null;
+    static active;
+    static instance;
+    static automatic;
     static position = {
-        x: 0,
-        y: 0,
+        x: null,
+        y: null,
     };
 
     static init() {}
+
+    static prepareHooks() {
+        Hooks.on('getSceneControlButtons', (controls) => PopoutTimer.addControlButtons(controls));
+        Hooks.on('combatStart', (combat, updateData) => {
+            if (PopoutTimer.automatic) {
+            }
+        });
+    }
+
+    static addControlButtons(controls) {
+        const drawing_controls = controls.find((control_set) => control_set.name === 'drawings');
+        drawing_controls.tools.push({
+            name: 'timer-bar-popout',
+            icon: 'fas fa-hourglass',
+            title: 'CONTROLS.TIMER_BAR_POPOUT',
+            onClick: () => {
+                PopoutTimer.toggleActive();
+            },
+            button: true,
+        });
+    }
+
+    static toggleActive() {
+        //new PopoutTimer().render(true);
+    }
 
     static get defaultOptions() {
         return mergeObject(super.defaultOptions, {

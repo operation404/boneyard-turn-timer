@@ -5,12 +5,12 @@ export class TurnTimer {
     static minTurnDuration = 1; // seconds
 
     static active;
+    static instance;
     static toggleButtons = [];
     static defaultDuration;
     static forceEndTurn;
     static customDurations;
     static element;
-    static timer;
     static barColor;
     static warningThreshold;
     static warningGlowColor;
@@ -49,12 +49,12 @@ export class TurnTimer {
     }
 
     static _injectNextUpdate(payload) {
-        TurnTimer.timer?.remove();
+        TurnTimer.instance?.remove();
         const combat = game.combats.get(payload.combatID);
 
         if (combat?.isActive) {
             Hooks.once('updateCombat', (combat, change, options, userID) => {
-                function get_owners(actor) {
+                function getOwners(actor) {
                     const ownership = actor?.ownership ?? {};
                     return ownership.default === 3
                         ? // If default is set to 3 (ownership), get all non-GM users
@@ -65,17 +65,17 @@ export class TurnTimer {
                           );
                 }
 
-                const current_owners = get_owners(game.actors.get(combat.combatant?.actorId));
+                const currentOwners = getOwners(game.actors.get(combat.combatant?.actorId));
 
                 // Don't notify players who act next round if they're already acting this round
-                const next_up_owners = get_owners(game.actors.get(combat.nextCombatant?.actorId)).filter(
-                    (userID) => !current_owners.includes(userID)
+                const nextUpOwners = getOwners(game.actors.get(combat.nextCombatant?.actorId)).filter(
+                    (userID) => !currentOwners.includes(userID)
                 );
-                TurnTimer.playSound('next_up', next_up_owners);
-                TurnTimer.sendAlert(next_up_owners);
+                TurnTimer.playSound('next_up', nextUpOwners);
+                TurnTimer.sendAlert(nextUpOwners);
 
                 // if 0, gm owns token, don't make timer
-                if (current_owners.length > 0) TurnTimer.timer = new TurnTimer(current_owners, combat);
+                if (currentOwners.length > 0) TurnTimer.instance = new TurnTimer(currentOwners, combat);
             });
         }
     }
@@ -83,7 +83,7 @@ export class TurnTimer {
     static _toggleActive(payload) {
         TurnTimer.active = !TurnTimer.active;
         TurnTimer.toggleTimerHooks();
-        TurnTimer.timer?.remove();
+        TurnTimer.instance?.remove();
 
         // Remove toggle buttons not in DOM, update the ones that still are
         (TurnTimer.toggleButtons = TurnTimer.toggleButtons.filter((b) => document.body.contains(b))).forEach((b) => {
@@ -297,6 +297,6 @@ export class TurnTimer {
         clearInterval(this.intervalID);
         Hooks.off('renderCombatTracker', this.hookID);
         this.bars.forEach((t) => t.remove());
-        TurnTimer.timer = null;
+        TurnTimer.instance = null;
     }
 }
