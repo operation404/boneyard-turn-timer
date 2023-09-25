@@ -1,5 +1,5 @@
 {
-    "CONTROLS.CONTROLS.TIMER_BAR_POPOUT": "Popout Timer Bar",
+    "CONTROLS.TIMER_BAR_POPOUT": "Popout Timer Bar",
 
     "SETTINGS.NAME.FORCE_TURN_CHANGE": "Automatically End Turn",
     "SETTINGS.HINT.FORCE_TURN_CHANGE": "Whether or not to forcibly progress to the next turn once a turn's time limit has fully elapsed.\nDefault: True",

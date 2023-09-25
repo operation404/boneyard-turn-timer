@@ -1,6 +1,7 @@
 import * as CONST from './scripts/constants.js';
 import { prepareSettings } from './scripts/settings.js';
 import { TurnTimer } from './scripts/turn_timer.js';
+import { PopoutTimer } from './scripts/popout_timer.js';
 
 Hooks.once('init', async () =>
     loadTemplates([
@@ -11,3 +12,4 @@ Hooks.once('init', async () =>
 );
 Hooks.once('init', prepareSettings);
 Hooks.once('init', TurnTimer.init);
+Hooks.once('init', PopoutTimer.init);

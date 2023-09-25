@@ -1,4 +1,5 @@
 import * as CONST from './constants.js';
+import { PopoutTimer } from './popout_timer.js';
 
 export class TurnTimer {
     static interval = 25; // milliseconds
@@ -299,4 +300,6 @@ export class TurnTimer {
         this.bars.forEach((t) => t.remove());
         TurnTimer.instance = null;
     }
+
+    createPairedPopout() {}
 }

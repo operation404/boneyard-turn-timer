@@ -1,4 +1,5 @@
 import * as CONST from './constants.js';
+import { TurnTimer } from './turn_timer.js';
 
 export class PopoutTimer extends Application {
     static active;
@@ -9,18 +10,24 @@ export class PopoutTimer extends Application {
         y: null,
     };
 
-    static init() {}
+    static init() {
+        PopoutTimer.prepareInitData();
+        PopoutTimer.prepareHooks();
+    }
+
+    static prepareInitData() {}
 
     static prepareHooks() {
         Hooks.on('getSceneControlButtons', (controls) => PopoutTimer.addControlButtons(controls));
         Hooks.on('combatStart', (combat, updateData) => {
             if (PopoutTimer.automatic) {
+                TurnTimer.instance.createPairedPopout();
             }
         });
     }
 
     static addControlButtons(controls) {
-        const drawing_controls = controls.find((control_set) => control_set.name === 'drawings');
+        const drawing_controls = controls.find((control_set) => control_set.name === 'token');
         drawing_controls.tools.push({
             name: 'timer-bar-popout',
             icon: 'fas fa-hourglass',
