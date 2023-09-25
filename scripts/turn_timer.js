@@ -1,5 +1,4 @@
 import * as CONST from './constants.js';
-import { PopoutTimer } from './popout_timer.js';
 
 export class TurnTimer {
     static interval = 25; // milliseconds
@@ -230,10 +229,7 @@ export class TurnTimer {
 
         this.hookID = Hooks.on('renderCombatTracker', (combatTracker, html, data) => {
             if (this.combat.id === combatTracker.viewed?.id) {
-                const new_node = TurnTimer.element.cloneNode(true);
-                this.setElementStyle(new_node);
-                html[0].querySelector(`nav#combat-controls`).insertAdjacentElement('beforebegin', new_node);
-                this.bars.push(new_node);
+                html[0].querySelector(`nav#combat-controls`).insertAdjacentElement('beforebegin', this.newTimerBar());
             }
         });
 
@@ -246,6 +242,13 @@ export class TurnTimer {
             this.owners.reduce((time, userID) => {
                 return Math.max(time, TurnTimer.customDurations[userID] ?? TurnTimer.defaultDuration);
             }, 0) * 1000;
+    }
+
+    newTimerBar() {
+        const newNode = TurnTimer.element.cloneNode(true);
+        this.setElementStyle(newNode);
+        this.bars.push(newNode);
+        return newNode;
     }
 
     setElementStyle(timer) {
@@ -300,6 +303,4 @@ export class TurnTimer {
         this.bars.forEach((t) => t.remove());
         TurnTimer.instance = null;
     }
-
-    createPairedPopout() {}
 }

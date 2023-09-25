@@ -20,9 +20,7 @@ export class PopoutTimer extends Application {
     static prepareHooks() {
         Hooks.on('getSceneControlButtons', (controls) => PopoutTimer.addControlButtons(controls));
         Hooks.on('combatStart', (combat, updateData) => {
-            if (PopoutTimer.automatic) {
-                TurnTimer.instance.createPairedPopout();
-            }
+            if (PopoutTimer.automatic) PopoutTimer.setActive(true);
         });
     }
 
@@ -33,14 +31,23 @@ export class PopoutTimer extends Application {
             icon: 'fas fa-hourglass',
             title: 'CONTROLS.TIMER_BAR_POPOUT',
             onClick: () => {
-                PopoutTimer.toggleActive();
+                PopoutTimer.setActive(!PopoutTimer.active);
             },
             button: true,
         });
     }
 
-    static toggleActive() {
-        //new PopoutTimer().render(true);
+    static setActive(active) {
+        if (active === PopoutTimer.active) return;
+
+        if (active) {
+            timerBar = TurnTimer.instance?.newTimerBar();
+            if (timerBar) PopoutTimer.instance = new PopoutTimer(timerBar);
+        } else {
+            PopoutTimer.instance?.remove();
+        }
+
+        PopoutTimer.active = active;
     }
 
     static get defaultOptions() {
