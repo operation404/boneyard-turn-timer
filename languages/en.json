@@ -30,5 +30,5 @@
     "SETTINGS.HINT.NEXT_UP_SOUND": "The path to a sound file to be played the turn before a player's turn approaches in order to alert them their turn is coming up next. A blank input or incorrect path will result in no sound being played.\nDefault: 'modules/boneyard-turn-timer/assets/next_up_sound.ogg'",
 
     "SETTINGS.NAME.AUTO_POPOUT": "Automatically Popout Timer",
-    "SETTINGS.HINT.AUTO_POPOUT": "Whether to automatically make a popout timer panel that can be move around the browser window independent from the core Foundry combat tracker."
+    "SETTINGS.HINT.AUTO_POPOUT": "Whether to automatically make a popout timer panel that can be moved around the browser window independent from the core Foundry combat tracker."
 }

@@ -1,9 +1,9 @@
 import * as CONST from './constants.js';
-import { Turn_Timer } from './turn_timer.js';
+import { TurnTimer } from './turn_timer.js';
 
 const hex_test = /^#[0-9A-F]{6}$/i;
 
-export function prepare_settings() {
+export function prepareSettings() {
     game.settings.register(CONST.MODULE, CONST.SETTINGS.ACTIVE, {
         scope: 'world',
         config: false,
@@ -21,9 +21,9 @@ export function prepare_settings() {
         default: 60,
         requiresReload: false,
         onChange: (value) => {
-            value = (value = Math.floor(value)) < Turn_Timer.min_turn_duration ? Turn_Timer.min_turn_duration : value;
+            value = (value = Math.floor(value)) < TurnTimer.minTurnDuration ? TurnTimer.minTurnDuration : value;
             game.settings.set(CONST.MODULE, CONST.SETTINGS.DEFAULT_TURN_DURATION, value);
-            Turn_Timer.default_duration = value;
+            TurnTimer.defaultDuration = value;
         },
     });
 
@@ -36,7 +36,7 @@ export function prepare_settings() {
         default: true,
         requiresReload: false,
         onChange: (value) => {
-            Turn_Timer.force_end_turn = value;
+            TurnTimer.forceEndTurn = value;
         },
     });
 
@@ -49,7 +49,7 @@ export function prepare_settings() {
         default: '',
         requiresReload: false,
         onChange: (value) => {
-            Turn_Timer.parse_custom_durations(value);
+            TurnTimer.parseCustomDurations(value);
         },
     });
 
@@ -69,7 +69,7 @@ export function prepare_settings() {
         },
         requiresReload: false,
         onChange: (value) => {
-            Turn_Timer.warning_threshold = value;
+            TurnTimer.warningThreshold = value;
         },
     });
 
@@ -82,7 +82,7 @@ export function prepare_settings() {
         default: true,
         requiresReload: false,
         onChange: (value) => {
-            Turn_Timer.toggle_button_element = value;
+            TurnTimer.toggleButtonElement = value;
         },
     });
 
@@ -99,7 +99,7 @@ export function prepare_settings() {
             if (!hex_test.test(value)) {
                 game.settings.set(CONST.MODULE, CONST.SETTINGS.BAR_COLOR, default_bar_color);
             }
-            Turn_Timer.generate_base_element();
+            TurnTimer.generateBaseElement();
         },
     });
 
@@ -116,7 +116,7 @@ export function prepare_settings() {
             if (!hex_test.test(value)) {
                 game.settings.set(CONST.MODULE, CONST.SETTINGS.WARNING_COLOR, default_warning_glow_color);
             }
-            Turn_Timer.generate_base_element();
+            TurnTimer.generateBaseElement();
         },
     });
 
@@ -129,7 +129,7 @@ export function prepare_settings() {
         default: 'modules/boneyard-turn-timer/assets/warning_sound.ogg',
         requiresReload: false,
         onChange: (value) => {
-            Turn_Timer.set_sound('warning', value);
+            TurnTimer.setSound('warning', value);
         },
     });
 
@@ -142,7 +142,7 @@ export function prepare_settings() {
         default: 'modules/boneyard-turn-timer/assets/turn_start_sound.ogg',
         requiresReload: false,
         onChange: (value) => {
-            Turn_Timer.set_sound('turn_start', value);
+            TurnTimer.setSound('turn_start', value);
         },
     });
 
@@ -155,7 +155,7 @@ export function prepare_settings() {
         default: 'modules/boneyard-turn-timer/assets/next_up_sound.ogg',
         requiresReload: false,
         onChange: (value) => {
-            Turn_Timer.set_sound('next_up', value);
+            TurnTimer.setSound('next_up', value);
         },
     });
 
