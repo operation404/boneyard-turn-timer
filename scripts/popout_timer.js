@@ -63,9 +63,7 @@ export class PopoutTimer extends Application {
     constructor(options = {}) {
         super(options);
 
-        if (TurnTimer.instance) this.getNewTurnBar(TurnTimer.instance);
-
-        this.hookID = Hooks.on('byCreateTurnTimer', (turnTimer) => this.getNewTurnBar(turnTimer).bind(this));
+        this.hookID = Hooks.on('byCreateTurnTimer', this.getNewTurnBar.bind(this));
     }
 
     getData() {
@@ -83,6 +81,7 @@ export class PopoutTimer extends Application {
         await super._render(force, options);
         this._element[0].style.left = `${100}px`;
         this._element[0].style.top = `${100}px`;
+        if (TurnTimer.instance) this.getNewTurnBar(TurnTimer.instance);
     }
 
     activateListeners(html) {
