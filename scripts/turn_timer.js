@@ -5,7 +5,7 @@ export class TurnTimer {
     static minTurnDuration = 1; // seconds
 
     static active;
-    static instance;
+    static instance = null;
     static toggleButtons = [];
     static defaultDuration;
     static forceEndTurn;
@@ -232,6 +232,8 @@ export class TurnTimer {
                 html[0].querySelector(`nav#combat-controls`).insertAdjacentElement('beforebegin', this.newTimerBar());
             }
         });
+
+        Hooks.callAll('byCreateTurnTimer', this);
 
         TurnTimer.playSound('turn_start', this.owners);
         this.intervalID = setInterval(this.updateTimerBars.bind(this), TurnTimer.interval);

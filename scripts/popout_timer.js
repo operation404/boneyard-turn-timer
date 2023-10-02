@@ -2,13 +2,15 @@ import * as CONST from './constants.js';
 import { TurnTimer } from './turn_timer.js';
 
 export class PopoutTimer extends Application {
-    static active;
-    static instance;
+    static instance = null;
     static automatic;
     static position = {
         x: null,
         y: null,
     };
+
+    // ------------------------------------------------------------------------
+    // Class methods
 
     static init() {
         PopoutTimer.prepareInitData();
@@ -20,7 +22,7 @@ export class PopoutTimer extends Application {
     static prepareHooks() {
         Hooks.on('getSceneControlButtons', (controls) => PopoutTimer.addControlButtons(controls));
         Hooks.on('combatStart', (combat, updateData) => {
-            if (PopoutTimer.automatic) PopoutTimer.setActive(true);
+            if (PopoutTimer.automatic) PopoutTimer.managePopout(true);
         });
     }
 
@@ -31,17 +33,19 @@ export class PopoutTimer extends Application {
             icon: 'fas fa-hourglass',
             title: 'CONTROLS.TIMER_BAR_POPOUT',
             onClick: () => {
-                PopoutTimer.setActive(!PopoutTimer.active);
+                PopoutTimer.managePopout(!PopoutTimer.instance);
             },
             button: true,
         });
     }
 
-    static setActive(active) {
-        if (active !== PopoutTimer.active) {
-            PopoutTimer.active = active;
+    static managePopout(create = false) {
+        if (create) {
+            if (PopoutTimer.instance === null) {
+                PopoutTimer.instance = new PopoutTimer().render(true);
+            }
+        } else {
             PopoutTimer.instance?.remove();
-            if (PopoutTimer.active) PopoutTimer.instance = new PopoutTimer().render(true);
         }
     }
 
@@ -53,13 +57,15 @@ export class PopoutTimer extends Application {
         });
     }
 
+    // ------------------------------------------------------------------------
+    // Instance methods
+
     constructor(options = {}) {
         super(options);
 
-        this.hookIds = ['combatTurn', 'combatRound'].map((hook) => {
-            const id = Hooks.on(hook, () => this.updateBar.bind(this));
-            return { hook: hook, id: id };
-        });
+        if (TurnTimer.instance) this.getNewTurnBar(TurnTimer.instance);
+
+        this.hookID = Hooks.on('byCreateTurnTimer', (turnTimer) => this.getNewTurnBar(turnTimer).bind(this));
     }
 
     getData() {
@@ -75,7 +81,6 @@ export class PopoutTimer extends Application {
 
     async _render(force = false, options = {}) {
         await super._render(force, options);
-        this.updateBar();
         this._element[0].style.left = `${100}px`;
         this._element[0].style.top = `${100}px`;
     }
@@ -84,13 +89,17 @@ export class PopoutTimer extends Application {
         super.activateListeners(html);
     }
 
-    updateBar() {
-        const bar = TurnTimer.instance?.newTimerBar();
-        if (bar) this._element[0].querySelector('#by-timer-bar-container').insertAdjacentElement('afterbegin', bar);
+    getNewTurnBar(turnTimer) {
+        const bar = turnTimer.newTimerBar();
+        if (bar) {
+            this._element[0].querySelector('#by-timer-bar-container').insertAdjacentElement('afterbegin', bar);
+        } else {
+            console.error('Error: failed to get new timer bar from TurnTimer instance.', turnTimer);
+        }
     }
 
     remove() {
-        this.hookIds.forEach((h) => Hooks.off(h.hook, h.id));
+        Hooks.off('byCreateTurnTimer', this.hookID);
         this._element[0].remove();
         PopoutTimer.instance = null;
     }
