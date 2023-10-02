@@ -168,4 +168,11 @@ export function prepareSettings() {
         default: true,
         requiresReload: false,
     });
+
+    game.settings.register(CONST.MODULE, CONST.SETTINGS.POPOUT_POSITION, {
+        scope: 'client',
+        config: false,
+        type: Object,
+        requiresReload: false,
+    });
 }

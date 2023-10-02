@@ -17,7 +17,11 @@ export class PopoutTimer extends Application {
         PopoutTimer.prepareHooks();
     }
 
-    static prepareInitData() {}
+    static prepareInitData() {
+        let userPositionSettings = game.settings.get(CONST.MODULE, CONST.SETTINGS.POPOUT_POSITION) ?? {};
+        PopoutTimer.position.x = userPositionSettings.x ?? 0;
+        PopoutTimer.position.y = userPositionSettings.y ?? 0;
+    }
 
     static prepareHooks() {
         Hooks.on('getSceneControlButtons', (controls) => PopoutTimer.addControlButtons(controls));
@@ -62,7 +66,6 @@ export class PopoutTimer extends Application {
 
     constructor(options = {}) {
         super(options);
-
         this.hookID = Hooks.on('byCreateTurnTimer', this.getNewTurnBar.bind(this));
     }
 
@@ -79,8 +82,8 @@ export class PopoutTimer extends Application {
 
     async _render(force = false, options = {}) {
         await super._render(force, options);
-        this._element[0].style.left = `${100}px`;
-        this._element[0].style.top = `${100}px`;
+        this._element[0].style.left = `${PopoutTimer.position.x}px`;
+        this._element[0].style.top = `${PopoutTimer.position.y}px`;
         if (TurnTimer.instance) this.getNewTurnBar(TurnTimer.instance);
     }
 
@@ -100,6 +103,13 @@ export class PopoutTimer extends Application {
     remove() {
         Hooks.off('byCreateTurnTimer', this.hookID);
         this._element[0].remove();
+        // TODO
+        // Not sure if this is the best method of handling this, may
+        // want to save new xy as they're updated during a drag event
+        // on the off chance the user closes the window without the
+        // popout being removed, as I'm not sure if it will save
+        // the settings without being closed properly.
+        game.settings.set(CONST.MODULE, CONST.SETTINGS.POPOUT_POSITION, TurnTimer.position);
         PopoutTimer.instance = null;
     }
 }
