@@ -19,6 +19,7 @@ export class PopoutTimer extends Application {
 
     static prepareInitData() {
         let userPositionSettings = game.settings.get(CONST.MODULE, CONST.SETTINGS.POPOUT_POSITION) ?? {};
+        console.log(userPositionSettings);
         PopoutTimer.position.x = userPositionSettings.x ?? 0;
         PopoutTimer.position.y = userPositionSettings.y ?? 0;
     }
@@ -89,6 +90,7 @@ export class PopoutTimer extends Application {
 
     activateListeners(html) {
         super.activateListeners(html);
+        this.makeDraggable(html);
     }
 
     getNewTurnBar(turnTimer) {
@@ -100,16 +102,40 @@ export class PopoutTimer extends Application {
         }
     }
 
+    makeDraggable(html) {
+        let popout = html[0];
+        let lastX, lastY;
+
+        function mouseDownHandler(e) {
+            e.preventDefault();
+            lastX = e.clientX;
+            lastY = e.clientY;
+            document.addEventListener('mousemove', mouseMoveHandler);
+            document.addEventListener('mouseup', mouseUpHandler);
+        }
+
+        function mouseMoveHandler(e) {
+            e.preventDefault();
+            PopoutTimer.position.x -= lastX - e.clientX;
+            PopoutTimer.position.y -= lastY - e.clientY;
+            lastX = e.clientX;
+            lastY = e.clientY;
+            popout.style.left = `${PopoutTimer.position.x}px`;
+            popout.style.top = `${PopoutTimer.position.y}px`;
+            game.settings.set(CONST.MODULE, CONST.SETTINGS.POPOUT_POSITION, PopoutTimer.position);
+        }
+
+        function mouseUpHandler(e) {
+            document.removeEventListener('mousemove', mouseMoveHandler);
+            document.removeEventListener('mouseup', mouseUpHandler);
+        }
+
+        popout.addEventListener('mousedown', mouseDownHandler);
+    }
+
     remove() {
         Hooks.off('byCreateTurnTimer', this.hookID);
         this._element[0].remove();
-        // TODO
-        // Not sure if this is the best method of handling this, may
-        // want to save new xy as they're updated during a drag event
-        // on the off chance the user closes the window without the
-        // popout being removed, as I'm not sure if it will save
-        // the settings without being closed properly.
-        game.settings.set(CONST.MODULE, CONST.SETTINGS.POPOUT_POSITION, TurnTimer.position);
         PopoutTimer.instance = null;
     }
 }
