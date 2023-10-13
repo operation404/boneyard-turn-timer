@@ -246,7 +246,8 @@ export class TurnTimer {
             }, 0) * 1000;
     }
 
-    newTimerBar() {
+    newTimerBar(addBorder = false) {
+        // TODO add border to div here so that the popout can control if it wants the border or not
         const newNode = TurnTimer.element.cloneNode(true);
         this.setElementStyle(newNode);
         this.bars.push(newNode);

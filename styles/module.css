@@ -49,6 +49,7 @@ span.by-timer-text {
 div#by-turn-timer-popout {
   position: absolute;
   margin: 0px;
+  padding: 0px;
   height: 1.3em;
   width: 100px;
   background-color: orange;

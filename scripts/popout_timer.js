@@ -90,7 +90,7 @@ export class PopoutTimer extends Application {
 
     activateListeners(html) {
         super.activateListeners(html);
-        this.makeDraggable(html);
+        this.makeDraggable();
     }
 
     getNewTurnBar(turnTimer) {
@@ -102,8 +102,8 @@ export class PopoutTimer extends Application {
         }
     }
 
-    makeDraggable(html) {
-        let popout = html[0];
+    makeDraggable() {
+        let popout = this._element[0];
         let lastX, lastY;
 
         function mouseDownHandler(e) {
