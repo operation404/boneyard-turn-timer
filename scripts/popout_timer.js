@@ -19,7 +19,6 @@ export class PopoutTimer extends Application {
 
     static prepareInitData() {
         let userPositionSettings = game.settings.get(CONST.MODULE, CONST.SETTINGS.POPOUT_POSITION) ?? {};
-        console.log(userPositionSettings);
         PopoutTimer.position.x = userPositionSettings.x ?? 0;
         PopoutTimer.position.y = userPositionSettings.y ?? 0;
     }
@@ -94,7 +93,7 @@ export class PopoutTimer extends Application {
     }
 
     getNewTurnBar(turnTimer) {
-        const bar = turnTimer.newTimerBar({ 'div.by-timer-container': { borderTop: '' } });
+        const bar = turnTimer.newTimerBar({ '': { borderTop: 'none' } });
         if (bar) {
             this._element[0].querySelector('#by-timer-bar-container').insertAdjacentElement('afterbegin', bar);
         } else {
