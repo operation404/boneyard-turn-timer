@@ -93,14 +93,9 @@ export class PopoutTimer extends Application {
 
         const control_button_handlers = {
             nextTurn: (e) => {
-                console.log('nextTurn');
-                // TODO set some checks in place to make sure the user who clicks
-                // this is actually allowed to end the turn, as I don't think this
-                // function does that by default.
-                game.combat.nextTurn();
+                if (game.combat.turns[game.combat.turn].players.includes(game.user)) game.combat.nextTurn();
             },
             closePopout: (e) => {
-                console.log('closePopout');
                 this.remove();
             },
         };
