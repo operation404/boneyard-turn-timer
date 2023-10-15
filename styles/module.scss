@@ -79,5 +79,9 @@ a.by-timer-control-button {
     flex-grow: 0;
     width: 20px;
     height: 100%;
-    font-size: calc(1.3em + 2px);
+    font-size: 1.3em;
+    display: grid;
+    align-content: center;
+    justify-content: center;
+    color: darkgray;
 }
