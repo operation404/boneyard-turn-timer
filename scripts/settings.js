@@ -175,4 +175,17 @@ export function prepareSettings() {
         type: Object,
         requiresReload: false,
     });
+
+    game.settings.register(CONST.MODULE, CONST.SETTINGS.POPOUT_WIDTH, {
+        name: `SETTINGS.NAME.${CONST.SETTINGS.POPOUT_WIDTH}`,
+        hint: `SETTINGS.HINT.${CONST.SETTINGS.POPOUT_WIDTH}`,
+        scope: 'client',
+        config: true,
+        type: Number,
+        default: 100,
+        requiresReload: false,
+        onChange: (value) => {
+            game.settings.set(CONST.MODULE, CONST.SETTINGS.POPOUT_WIDTH, Math.clamped(value, 60, 500));
+        },
+    });
 }

@@ -105,6 +105,9 @@ export class PopoutTimer extends Application {
         });
     }
 
+    // TODO make sure popout opens on combat start/creation ?
+    // also make popout close when the combat is deleted?
+
     getNewTurnBar(turnTimer) {
         const bar = turnTimer.newTimerBar({ '': { borderTop: 'none' } });
         if (bar) {

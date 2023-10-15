@@ -18,5 +18,6 @@ const settings = [
     'NEXT_UP_SOUND',
     'AUTO_POPOUT',
     'POPOUT_POSITION',
+    'POPOUT_WIDTH',
 ];
 export const SETTINGS = Object.freeze(Object.fromEntries(settings.map((v) => [v, v])));
