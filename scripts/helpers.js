@@ -5,7 +5,7 @@
  * @param {HTMLElement} html
  * @param {Object} elementsToStyle
  */
-export function applyCustomStyling(html, elementsToStyle = {}) {
+export function applyCustomStyling(html, elementsToStyle) {
     if (html.querySelector && typeof elementsToStyle === 'object')
         for (const [elementQuery, elementStyles] of Object.entries(elementsToStyle)) {
             const element = html.querySelector(elementQuery);

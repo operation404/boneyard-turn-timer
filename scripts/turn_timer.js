@@ -1,4 +1,5 @@
 import * as CONST from './constants.js';
+import { applyCustomStyling } from './helpers.js';
 
 export class TurnTimer {
     static interval = 25; // milliseconds
@@ -246,10 +247,10 @@ export class TurnTimer {
             }, 0) * 1000;
     }
 
-    newTimerBar(addBorder = false) {
-        // TODO add border to div here so that the popout can control if it wants the border or not
+    newTimerBar(customStyling) {
         const newNode = TurnTimer.element.cloneNode(true);
         this.setElementStyle(newNode);
+        if (customStyling) applyCustomStyling(newNode, customStyling);
         this.bars.push(newNode);
         return newNode;
     }
