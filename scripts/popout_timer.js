@@ -30,7 +30,7 @@ export class PopoutTimer extends Application {
             if (PopoutTimer.automatic) PopoutTimer.managePopout(true);
         });
         Hooks.on('deleteCombat', (combat, updateData) => {
-            PopoutTimer.managePopout(false);
+            if (PopoutTimer.automatic) PopoutTimer.managePopout(false);
         });
     }
 
