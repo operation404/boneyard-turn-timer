@@ -189,7 +189,9 @@ export function prepareSettings() {
         default: 100,
         requiresReload: false,
         onChange: (value) => {
-            game.settings.set(CONST.MODULE, CONST.SETTINGS.POPOUT_WIDTH, Math.clamped(value, 60, 500));
+            value = Math.clamped(value, 60, 500);
+            game.settings.set(CONST.MODULE, CONST.SETTINGS.POPOUT_WIDTH, value);
+            PopoutTimer.width = value;
         },
     });
 }
