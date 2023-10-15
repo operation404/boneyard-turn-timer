@@ -49,6 +49,8 @@ span.by-timer-text {
 }
 
 div#by-turn-timer-popout {
+    display: grid;
+    flex: none;
     position: absolute;
     margin: 0px;
     padding: 0px;
@@ -57,4 +59,25 @@ div#by-turn-timer-popout {
     background-color: black;
     box-sizing: content-box; 
     border: 2px solid var(--color-border-dark-4);
+}
+
+div#by-turn-timer-popout > div {
+    grid-column: 1;
+    grid-row: 1;
+}
+
+div#by-timer-bar-container {
+    z-index: 1;
+}
+
+div#by-timer-controls {
+    z-index: 2;
+    display: flex;
+}
+
+a.by-timer-control-button {
+    flex-grow: 0;
+    width: 20px;
+    height: 100%;
+    background-color: red;
 }
