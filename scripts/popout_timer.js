@@ -90,6 +90,19 @@ export class PopoutTimer extends Application {
     activateListeners(html) {
         super.activateListeners(html);
         this.makeDraggable();
+
+        const control_button_handlers = {
+            nextTurn: (e) => {
+                console.log('nextTurn');
+            },
+            closePopout: (e) => {
+                console.log('closePopout');
+            },
+        };
+
+        html[0]
+            .querySelectorAll('a.by-timer-control-button')
+            .forEach((button) => button.addEventListener('click', control_button_handlers[button.dataset.action]));
     }
 
     getNewTurnBar(turnTimer) {
