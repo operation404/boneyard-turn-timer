@@ -1,5 +1,11 @@
 /* Using a # allows styling to be applied by id rather than class */
 
+.by-hide-until-hover {
+    visibility: hidden;
+    opacity: 0;
+    transition: all 0.1s ease-out;
+}
+
 div.by-timer-container {
     display: grid;
     flex: none;
@@ -57,7 +63,7 @@ div#by-turn-timer-popout {
     height: calc(1.3em + 2px);
     width: 100px;
     background-color: black;
-    box-sizing: content-box; 
+    box-sizing: content-box;
     border: 2px solid var(--color-border-dark-4);
 }
 
@@ -75,6 +81,12 @@ div#by-timer-controls {
     display: flex;
 }
 
+div#by-turn-timer-popout:hover .by-hide-until-hover#by-timer-controls {
+    visibility: visible;
+    opacity: 1;
+    transition: all 0.1s ease-in;
+}
+
 a.by-timer-control-button {
     flex-grow: 0;
     width: 20px;
@@ -83,5 +95,6 @@ a.by-timer-control-button {
     display: grid;
     align-content: center;
     justify-content: center;
-    color: darkgray;
+    color: white;
+    -webkit-text-stroke: 0.5px black;
 }
