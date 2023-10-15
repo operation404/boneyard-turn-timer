@@ -22,7 +22,7 @@ export function prepareSettings() {
         default: 60,
         requiresReload: false,
         onChange: (value) => {
-            value = (value = Math.floor(value)) < TurnTimer.minTurnDuration ? TurnTimer.minTurnDuration : value;
+            value = Math.max(Math.floor(value), TurnTimer.minTurnDuration);
             game.settings.set(CONST.MODULE, CONST.SETTINGS.DEFAULT_TURN_DURATION, value);
             TurnTimer.defaultDuration = value;
         },
@@ -180,6 +180,8 @@ export function prepareSettings() {
         requiresReload: false,
     });
 
+    const min_bar_width = 60;
+    const max_bar_width = 500;
     game.settings.register(CONST.MODULE, CONST.SETTINGS.POPOUT_WIDTH, {
         name: `SETTINGS.NAME.${CONST.SETTINGS.POPOUT_WIDTH}`,
         hint: `SETTINGS.HINT.${CONST.SETTINGS.POPOUT_WIDTH}`,
@@ -189,7 +191,7 @@ export function prepareSettings() {
         default: 100,
         requiresReload: false,
         onChange: (value) => {
-            value = Math.clamped(value, 60, 500);
+            value = Math.clamped(value, min_bar_width, max_bar_width);
             game.settings.set(CONST.MODULE, CONST.SETTINGS.POPOUT_WIDTH, value);
             PopoutTimer.width = value;
         },
