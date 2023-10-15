@@ -57,6 +57,7 @@ span.by-timer-text {
 div#by-turn-timer-popout {
     display: grid;
     flex: none;
+    justify-content: normal;
     position: absolute;
     margin: 0px;
     padding: 0px;
