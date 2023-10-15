@@ -1,4 +1,5 @@
 import * as CONST from './constants.js';
+import { PopoutTimer } from './popout_timer.js';
 import { TurnTimer } from './turn_timer.js';
 
 const hex_test = /^#[0-9A-F]{6}$/i;
@@ -167,6 +168,9 @@ export function prepareSettings() {
         type: Boolean,
         default: true,
         requiresReload: false,
+        onChange: (value) => {
+            PopoutTimer.automatic = value;
+        },
     });
 
     game.settings.register(CONST.MODULE, CONST.SETTINGS.POPOUT_POSITION, {

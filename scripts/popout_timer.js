@@ -18,15 +18,19 @@ export class PopoutTimer extends Application {
     }
 
     static prepareInitData() {
-        let userPositionSettings = game.settings.get(CONST.MODULE, CONST.SETTINGS.POPOUT_POSITION) ?? {};
-        PopoutTimer.position.x = userPositionSettings.x ?? 0;
-        PopoutTimer.position.y = userPositionSettings.y ?? 0;
+        const userPositionSettings = game.settings.get(CONST.MODULE, CONST.SETTINGS.POPOUT_POSITION);
+        PopoutTimer.position.x = userPositionSettings?.x ?? 0;
+        PopoutTimer.position.y = userPositionSettings?.y ?? 0;
+        PopoutTimer.automatic = game.settings.get(CONST.MODULE, CONST.SETTINGS.AUTO_POPOUT);
     }
 
     static prepareHooks() {
         Hooks.on('getSceneControlButtons', (controls) => PopoutTimer.addControlButtons(controls));
         Hooks.on('combatStart', (combat, updateData) => {
             if (PopoutTimer.automatic) PopoutTimer.managePopout(true);
+        });
+        Hooks.on('deleteCombat', (combat, updateData) => {
+            PopoutTimer.managePopout(false);
         });
     }
 
