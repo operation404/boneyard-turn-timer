@@ -94,7 +94,7 @@ export class PopoutTimer extends Application {
     }
 
     getNewTurnBar(turnTimer) {
-        const bar = turnTimer.newTimerBar();
+        const bar = turnTimer.newTimerBar({ 'div.by-timer-container': { borderTop: '' } });
         if (bar) {
             this._element[0].querySelector('#by-timer-bar-container').insertAdjacentElement('afterbegin', bar);
         } else {
