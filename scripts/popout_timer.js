@@ -4,6 +4,7 @@ import { TurnTimer } from './turn_timer.js';
 export class PopoutTimer extends Application {
     static instance = null;
     static automatic;
+    static width;
     static position = {
         x: null,
         y: null,
@@ -22,6 +23,7 @@ export class PopoutTimer extends Application {
         PopoutTimer.position.x = userPositionSettings?.x ?? 0;
         PopoutTimer.position.y = userPositionSettings?.y ?? 0;
         PopoutTimer.automatic = game.settings.get(CONST.MODULE, CONST.SETTINGS.AUTO_POPOUT);
+        PopoutTimer.width = game.settings.get(CONST.MODULE, CONST.SETTINGS.POPOUT_WIDTH);
     }
 
     static prepareHooks() {
@@ -61,7 +63,7 @@ export class PopoutTimer extends Application {
         return mergeObject(super.defaultOptions, {
             template: `modules/boneyard-turn-timer/templates/popout-timer.hbs`,
             id: CONST.MODULE,
-            popOut: false,
+            popOut: false, // Prevents adding default foundry header bar
         });
     }
 
@@ -76,6 +78,7 @@ export class PopoutTimer extends Application {
     getData() {
         return {
             appId: this.appId,
+            width: `${PopoutTimer.width}px`,
         };
     }
 
@@ -108,9 +111,6 @@ export class PopoutTimer extends Application {
             button.addEventListener('click', control_button_handlers[button.dataset.action]);
         });
     }
-
-    // TODO make sure popout opens on combat start/creation ?
-    // also make popout close when the combat is deleted?
 
     getNewTurnBar(turnTimer) {
         const bar = turnTimer.newTimerBar({ '': { borderTop: 'none' } });

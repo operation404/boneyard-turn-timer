@@ -1,21 +1,13 @@
-<div id='by-turn-timer-popout' class='app window-app' data-appid='{{appId}}'>
+<div id='by-turn-timer-popout' class='app window-app' data-appid='{{appId}}' style='width: {{width}};'>
     <div id='by-timer-bar-container'>
     </div>
-    <div id='by-timer-controls' class="by-hide-until-hover">
-        <a
-            class='by-timer-control-button'
-            data-tooltip="COMBAT.TurnNext"
-            data-action="nextTurn"
-        >
+    <div id='by-timer-controls' class='by-hide-until-hover'>
+        <a class='by-timer-control-button' data-tooltip='COMBAT.TurnNext' data-action='nextTurn'>
             <i class='fas fa-arrow-right'></i>
         </a>
         <div style='flex-grow: 1;'></div>
-        <a
-            class='by-timer-control-button'
-            data-tooltip="CONTROLS.CLOSE_POPOUT"
-            data-action="closePopout"
-        >
+        <a class='by-timer-control-button' data-tooltip='CONTROLS.CLOSE_POPOUT' data-action='closePopout'>
             <i class='fas fa-x'></i>
         </a>
-    </div>    
+    </div>
 </div>
