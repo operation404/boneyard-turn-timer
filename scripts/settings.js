@@ -22,7 +22,7 @@ export function prepareSettings() {
         default: 60,
         requiresReload: false,
         onChange: (value) => {
-            value = Math.max(Math.floor(value), TurnTimer.minTurnDuration);
+            value = Math.max(Math.floor(value), CONST.MINIMUM_TURN_DURATION);
             game.settings.set(CONST.MODULE, CONST.SETTINGS.DEFAULT_TURN_DURATION, value);
             TurnTimer.defaultDuration = value;
         },
@@ -87,35 +87,33 @@ export function prepareSettings() {
         },
     });
 
-    const default_bar_color = '#D0D000';
     game.settings.register(CONST.MODULE, CONST.SETTINGS.BAR_COLOR, {
         name: `SETTINGS.NAME.${CONST.SETTINGS.BAR_COLOR}`,
         hint: `SETTINGS.HINT.${CONST.SETTINGS.BAR_COLOR}`,
         scope: 'world',
         config: true,
         type: String,
-        default: default_bar_color,
+        default: CONST.DEFAULT_BAR_COLOR,
         requiresReload: false,
         onChange: (value) => {
             if (!hex_test.test(value)) {
-                game.settings.set(CONST.MODULE, CONST.SETTINGS.BAR_COLOR, default_bar_color);
+                game.settings.set(CONST.MODULE, CONST.SETTINGS.BAR_COLOR, CONST.DEFAULT_BAR_COLOR);
             }
             TurnTimer.generateBaseElement();
         },
     });
 
-    const default_warning_glow_color = '#FF0000';
     game.settings.register(CONST.MODULE, CONST.SETTINGS.WARNING_COLOR, {
         name: `SETTINGS.NAME.${CONST.SETTINGS.WARNING_COLOR}`,
         hint: `SETTINGS.HINT.${CONST.SETTINGS.WARNING_COLOR}`,
         scope: 'world',
         config: true,
         type: String,
-        default: default_warning_glow_color,
+        default: CONST.DEFAULT_WARNING_GLOW_COLOR,
         requiresReload: false,
         onChange: (value) => {
             if (!hex_test.test(value)) {
-                game.settings.set(CONST.MODULE, CONST.SETTINGS.WARNING_COLOR, default_warning_glow_color);
+                game.settings.set(CONST.MODULE, CONST.SETTINGS.WARNING_COLOR, CONST.DEFAULT_WARNING_GLOW_COLOR);
             }
             TurnTimer.generateBaseElement();
         },
@@ -180,8 +178,6 @@ export function prepareSettings() {
         requiresReload: false,
     });
 
-    const min_bar_width = 60;
-    const max_bar_width = 500;
     game.settings.register(CONST.MODULE, CONST.SETTINGS.POPOUT_WIDTH, {
         name: `SETTINGS.NAME.${CONST.SETTINGS.POPOUT_WIDTH}`,
         hint: `SETTINGS.HINT.${CONST.SETTINGS.POPOUT_WIDTH}`,
@@ -191,7 +187,7 @@ export function prepareSettings() {
         default: 100,
         requiresReload: false,
         onChange: (value) => {
-            value = Math.clamped(value, min_bar_width, max_bar_width);
+            value = Math.clamped(value, CONST.MINIMUM_BAR_WIDTH, CONST.MAXIMUM_BAR_WIDTH);
             game.settings.set(CONST.MODULE, CONST.SETTINGS.POPOUT_WIDTH, value);
             PopoutTimer.width = value;
         },

@@ -2,9 +2,6 @@ import * as CONST from './constants.js';
 import { applyCustomStyling } from './helpers.js';
 
 export class TurnTimer {
-    static interval = 25; // milliseconds
-    static minTurnDuration = 1; // seconds
-
     static active;
     static instance = null;
     static toggleButtons = [];
@@ -168,7 +165,7 @@ export class TurnTimer {
                 (name = game.users.find((u) => u.name === name)?.id) !== undefined &&
                 !isNaN((time = parseInt(time)))
             ) {
-                TurnTimer.customDurations[name] = Math.max(time, TurnTimer.minTurnDuration);
+                TurnTimer.customDurations[name] = Math.max(time, CONST.MINIMUM_TURN_DURATION);
             }
         });
     }
@@ -237,7 +234,7 @@ export class TurnTimer {
         Hooks.callAll('byCreateTurnTimer', this);
 
         TurnTimer.playSound('turn_start', this.owners);
-        this.intervalID = setInterval(this.updateTimerBars.bind(this), TurnTimer.interval);
+        this.intervalID = setInterval(this.updateTimerBars.bind(this), CONST.INTERVAL_STEP);
     }
 
     calculateLifespan() {
@@ -267,7 +264,7 @@ export class TurnTimer {
 
     updateTimerBars() {
         if (!game.paused) {
-            this.progress += TurnTimer.interval;
+            this.progress += CONST.INTERVAL_STEP;
 
             if (
                 this.warning_not_triggered &&
