@@ -11,6 +11,7 @@
 - [Automatic turn passing](#automatic-turn-passing)
 - [Quick toggle timers on and off](#quick-toggle-timers-on-and-off)
 - [Appearance customization](#appearance-customization)
+- [Known Issues](#known-issues)
 - [TODO](#todo)
 
 ## Simple and easy to use turn timer
