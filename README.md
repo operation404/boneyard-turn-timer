@@ -30,7 +30,7 @@ A new control button is added to the Token Controls that creates a draggable pop
 
 Settings are provided to configure the width of the popout timer as well as whether to automatically create the popout when a combat starts and close the popout when a combat ends. These are both client settings.
 
-<img src="https://github.com/operation404/boneyard-turn-timer/blob/master/images/popout timer example.png?raw=true" width=40%>
+<img src="https://github.com/operation404/boneyard-turn-timer/blob/master/images/popout timer example.png?raw=true" width=30%>
 
 ## Automatic turn passing
 The timer can be configured to automatically continue to the next turn when the timer's duration has elapsed. This can also be disabled, allowing the timer to simply function as a reminder without forcing a player to end their turn early if they happen to need a little extra time. The timer will still be visible and give alerts while turn passing is disabled, but will halt at 0 seconds left once the timer's duration has elapsed.
