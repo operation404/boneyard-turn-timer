@@ -230,6 +230,7 @@ export class TurnTimer {
                 html[0].querySelector(`nav#combat-controls`).insertAdjacentElement('beforebegin', this.newTimerBar());
             }
         });
+        Hooks.once('deleteCombat', (combat, updateData) => this.remove());
 
         Hooks.callAll('byCreateTurnTimer', this);
 
