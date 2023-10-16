@@ -49,6 +49,9 @@ Both the timer bar and warning glow have configuration fields for changing their
 
 <img src="https://github.com/operation404/boneyard-turn-timer/blob/master/images/timer bar customization.png?raw=true" width=40%>
 
+## Known Issues
+When loading into Foundry while a combat is active, the client won't create a timer bar for the current turn. This is because timer bars are created at turn start and aren't synchronized across all clients.
+
 ## TODO
 - [ ] Add options to color timer per user, as well as options to get the user's chosen color for use in their timer bar.
 - [ ] Add better alert customization. Perhaps a sub menu that defines alerts per user, with the ability to define any number of alerts at any threshold, both message and sound?
