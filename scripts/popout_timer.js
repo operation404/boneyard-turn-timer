@@ -100,7 +100,8 @@ export class PopoutTimer extends Application {
 
         const control_button_handlers = {
             nextTurn: (e) => {
-                if (game.combat.turns[game.combat.turn].players.includes(game.user)) game.combat.nextTurn();
+                if (game.combat.turns[game.combat.turn].players.includes(game.user) || game.user.isGM)
+                    game.combat.nextTurn();
             },
             closePopout: (e) => {
                 this.remove();
